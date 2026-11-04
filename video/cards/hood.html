@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#09090b;color:#fafafa;font-family:"Inter", "Malgun Gothic", "Pretendard", "Segoe UI", system-ui, sans-serif;-webkit-font-smoothing:antialiased}
+.muted{color:#a1a1aa}
+.rule{height:1px;background:#27272a;border:0}
+
+.frame{position:absolute;left:120px;right:120px;top:100px;bottom:100px;display:flex;flex-direction:column}
+h2{font-size:56px;font-weight:700;letter-spacing:-0.5px}
+.frame>.rule{margin:28px 0 40px}
+.cols{flex:1;display:flex;gap:72px;min-height:0}
+.left{flex:0 0 58%;display:flex;flex-direction:column;justify-content:space-between}
+.right{flex:1;display:flex;flex-direction:column;justify-content:center}
+.box{border:1px solid #3f3f46;border-radius:12px;padding:14px 24px}
+.box .a{font-size:29px;font-weight:600;color:#fafafa;font-family:Consolas,"Cascadia Mono",monospace}
+.box .b{font-size:26px;color:#a1a1aa;margin-top:4px}
+.arrow{font-size:28px;color:#71717a;text-align:center;line-height:1;height:28px}
+.tt{font-size:28px;font-weight:600;line-height:1.35;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:28px}
+th,td{padding:14px 10px;border-bottom:1px solid #27272a;text-align:left;vertical-align:top}
+th{font-size:22px;color:#a1a1aa;font-weight:500}
+td.n,th.n{text-align:right;white-space:nowrap}
+td.on{font-weight:700;color:#fafafa}
+td.off{color:#d4d4d8}
+.note{font-size:22px;color:#a1a1aa;margin-top:22px;line-height:1.4}
+
+</style></head><body>
+
+<div class="frame">
+  <h2>Under the hood</h2>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="left"><div class="box"><div class="a">muse-voice-transcribe-1.0</div><div class="b">2 radio channels + crew PTT · SOP keyword biasing</div></div><div class="arrow">↓</div><div class="box"><div class="a">muse-spark-1.3</div><div class="b">strict JSON triage · verbatim evidence span</div></div><div class="arrow">↓</div><div class="box"><div class="a">world model</div><div class="b">units · zones · 7 time-bounded rules</div></div><div class="arrow">↓</div><div class="box"><div class="a">muse-spark-1.3 Responses agent</div><div class="b">7 tools · push / hold / ask / propose</div></div><div class="arrow">↓</div><div class="box"><div class="a">invariant checker</div><div class="b">rejects wrong-sector briefs → agent retries</div></div></div>
+    <div class="right">
+      <div class="tt">Eval tonight · n = 36 lines<br><span class="muted" style="font-weight:400">Gemini-TTS speech + AMR-NB radio codec</span></div>
+      <table>
+        <tr><th>metric</th><th class="n">radio,<br>keywords off</th><th class="n">radio,<br>keywords on</th></tr>
+        <tr><td>MAYDAY recall</td><td class="n off">13/13</td><td class="n on">13/13</td></tr><tr><td>critical SOP terms recovered</td><td class="n off">11/14</td><td class="n on">14/14</td></tr><tr><td>callsign match (raw)</td><td class="n off">58 %</td><td class="n on">79 %</td></tr><tr><td>codeword-free distress caught</td><td class="n off">5/5</td><td class="n on">5/5</td></tr><tr><td>Spark triage p50</td><td class="n off">4.2 s</td><td class="n on">4.1 s</td></tr>
+      </table>
+      <div class="note">Measured 2026-11-04 with the file ASR endpoint; no general WER claim.</div>
+    </div>
+  </div>
+</div>
+
+</body></html>

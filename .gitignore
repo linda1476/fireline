@@ -11,3 +11,8 @@ out/
 data/logs/
 eval/.memo.jsonl
 data/cache/memo.jsonl
+
+# video build outputs (large); cards + scripts are tracked
+video/build/
+video/*.mp4
+video/*.webm
