@@ -113,6 +113,10 @@ No general WER claim is made for Muse; the numbers above are this project's own 
 - Decision support only: the agent routes information; every order is a proposal the IC approves.
 - Rule thresholds (10 s / 60 s / 8 s) are **demo timescale** and labelled as such.
 - The Meta ASR returns no confidence scores; uncertainty is Spark's `asr_uncertain` self-report.
+- The relevance agent has a 12 s wall timeout. In the recorded live runs about 3 of 6–8 wakes ran past it (a
+  second tool round, or one slow Spark response) and the deterministic zone router delivered instead; its brief text
+  is still the Spark-written `crew_brief`, and the agent's late calls are applied afterwards when they pass the
+  checker. The trace tab marks both. Cards never wait for the agent.
 
 ## Sources
 

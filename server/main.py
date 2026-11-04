@@ -577,8 +577,9 @@ async def _decide(pid: str, approve: bool) -> dict[str, Any]:
     p = RT.world.decide_proposal(pid, approve)
     if p is None:
         raise HTTPException(404, "proposal not found")
-    if approve and p.state == "approved":
-        RT.spawn(wake(f"proposal_approved:{p.id}", None))
+    # No agent wake on approval: world.decide_proposal already delivers the P0 briefs (order text to p.units, the
+    # hold-position brief to the member in distress). In the live runs the `proposal_approved:*` wakes only ever
+    # returned get_unit_state in round 1 and then timed out in round 2 (docs/VERIFY_RUN2.md note 2).
     return p.model_dump(mode="json")
 
 

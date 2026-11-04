@@ -186,6 +186,7 @@ class WakeCtx:
     late: bool = False          # True once the router fallback has delivered (agent_timeout_s passed)
     first_call_ms: int | None = None
     round_ms: list[int] = field(default_factory=list)
+    t_world: float = 0.0        # scenario clock when the wake started (late ping_unit is dropped if heard since)
 
 
 # ----------------------------------------------------------------------------- agent
@@ -215,6 +216,7 @@ class RelevanceAgent:
         wid = f"wake_{self._n:04d}_{int(time.time() * 1000) % 100000}"
         ctx = WakeCtx(wid, f"{reason} {event.triage.tag}" if event is not None and event.id in reason else reason)
         st = self.world.state
+        ctx.t_world = st.t
         st.counters.agent_wakes += 1
         result: dict[str, Any] = {"wake_id": wid, "fallback": False, "calls": 0, "rejections": 0}
         task = asyncio.ensure_future(self._loop(event, result, ctx))
@@ -433,6 +435,12 @@ class RelevanceAgent:
             data["last_briefs"] = [b.model_dump(mode="json") for b in st.briefs if b.unit_id == u.id][-3:]
             return {"ok": True, "unit": data}
         if tool == "ping_unit":
+            u = st.units.get(a["unit_id"])
+            if ctx.late and u is not None and u.last_heard_t > ctx.t_world:
+                # a late ping after the unit has transmitted since the wake started would land on a crew that just
+                # reported OK (VERIFY_RUN2 note 5): no-op, traced
+                self._trace("delivery", {"unit_id": u.id, "decision": "ping_dropped", "reason": "heard since wake"}, ctx)
+                return {"ok": True, "dropped": "unit heard since the wake started"}
             self.world.ping_unit(a["unit_id"])
             self._trace("delivery", {"unit_id": a["unit_id"], "decision": "ping"}, ctx)
             return {"ok": True}

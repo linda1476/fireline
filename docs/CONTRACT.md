@@ -133,7 +133,9 @@ with note "found OK". A crew ack (`POST /api/crew/{unit}/ack`) does the same.
 
 ## Relevance agent (agent.py) and checker
 
-Wake reasons: `event:<id>` (non-ROUTINE), `rule:<R>:<unit>`, `button:<unit>:<kind>`, `proposal_approved:<id>`.
+Wake reasons: `event:<id>` (non-ROUTINE), `rule:<R>:<unit>`, `button:<unit>:<kind>`. Proposal approval does NOT wake the
+agent: `world.decide_proposal` delivers the P0 briefs itself (order text to `p.units`, hold-position brief to the member
+in distress). A late `ping_unit` is dropped (traced `ping_dropped`) if the unit transmitted after the wake started.
 Input (round 1, kept cheap): open cards only, units with role CREW/RIT/EXTERIOR, zones with hazards/victims (+ the event
 zone), last 1 brief per unit, the triggering event incl. `crew_brief`, `related_zones` and `distressed_unit`.
 Round 1 runs at `agent_round1_reasoning_effort` ("minimal") with `max_output_tokens` 4000 (a token cap never makes a short
