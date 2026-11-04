@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import HoldButton from "./HoldButton"
 import EarpieceLine from "./EarpieceLine"
 
-// TODO(main.py): relies on /api/scenario/lines carrying `kind` or `channel` per line
+// /api/scenario/lines items carry `channel` (and `kind`) per line
 type ScenarioLine = { id: string; t?: number; unit?: string; kind?: unknown; channel?: unknown }
 
 function normaliseLines(raw: unknown): ScenarioLine[] {

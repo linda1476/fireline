@@ -28,7 +28,7 @@ server/
   cache.py           RunRecorder / RunReplayer (run_<ts>.jsonl), list_runs / promote / newest_run, memo(kind, payload, compute)
   main.py            FastAPI app: REST below, WS /ws, static /samples → data/audio
 eval/run_eval.py     batch eval → eval/results.json + eval/results.md
-scripts/make_audio.py  raw (Gemini TTS via scripts/gemini_tts.py, or recordings) → clean 16k WAV → radio (AMR-NB) WAV; SAPI fallback (Heami/Zira)
+scripts/make_audio.py  raw (Gemini TTS via scripts/gemini_tts.py, or recordings) → clean 16k WAV → radio (AMR-NB) WAV; Windows SAPI fallback exists in the script but is unused (shipped audio is all tts_gemini)
 data/                scenario_hanbit.yaml, eval_lines.yaml, roster.json, zones.json, keywords.json, audio/{raw,clean,radio}, cache/
 web/                 Vite + React 19 + react-router 8 (SPA) + Tailwind v4 + shadcn/ui (base-ui)
 ```

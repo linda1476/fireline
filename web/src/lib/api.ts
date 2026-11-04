@@ -62,7 +62,7 @@ export interface ScenarioLine {
   text_en?: string
   [k: string]: unknown
 }
-// TODO(main.py): confirm response shape; accept either a bare list or {lines: [...]}.
+// accepts either a bare list or {lines: [...]}
 export async function getScenarioLines(): Promise<ScenarioLine[]> {
   const r = await req<ScenarioLine[] | { lines: ScenarioLine[] }>("GET", "/api/scenario/lines")
   return Array.isArray(r) ? r : (r?.lines ?? [])

@@ -21,7 +21,6 @@ class Settings:
     base_url: str = "https://api.meta.ai/v1"
     spark_model: str = "muse-spark-1.3"
     asr_model: str = "muse-voice-transcribe-1.0"
-    sam_model: str = "sam-3.1"
     asr_ws_url: str = "wss://api.meta.ai/v1/asr/realtime"
     asr_transcribe_url: str = "https://api.meta.ai/v1/asr/transcribe"
     root: Path = ROOT

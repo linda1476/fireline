@@ -25,11 +25,11 @@ RADIO = ROOT / "data" / "audio" / "radio"
 FPS = 30
 
 # ------------------------------------------------------------------ timeline design (video seconds)
-HOOK = [("hook_1", 2.0), ("hook_2", 2.4), ("hook_3", 2.6), ("hook_4", 2.2), ("hook_5", 1.8)]   # 11.0 s
+HOOK = [("hook_1", 2.5), ("hook_2", 2.9), ("hook_3", 3.1), ("hook_4", 2.7), ("hook_5", 2.3)]   # 13.5 s (vo_01 20.4 s fits at ×1.17)
 TITLE_S = 5.0
 # run-time segments: (run_t0, run_t1, speed)
 SEGMENTS = [(0.0, 34.0, 2.4), (34.0, 101.0, 1.0), (101.0, 119.5, 1.6), (119.5, 126.0, 1.0), (126.0, 167.5, 1.8)]
-HOOD_MIN_S, CLOSE_S = 15.0, 12.0
+HOOD_MIN_S, CLOSE_S = 15.0, 10.5
 
 # earpiece lines: (run_t, unit, voice file key, EN subtitle)   unit: kim | park
 EAR = [
@@ -37,7 +37,7 @@ EAR = [
     (99.3, "kim", "ear_b02", "Kim's earpiece · What do you need? Ladder, air cylinder…"),
     (102.3, "park", "ear_b03", "Park's earpiece · Member trapped in the 2F east storeroom, ceiling collapse, low on air."),
     (111.6, "park", "ear_b04", "Park's earpiece · Trapped member moving to the east windows; needs a ladder and an air cylinder."),
-    (120.6, "kim", "ear_b05", "Kim's earpiece · Rescue team on the way. Hold your position."),
+    (120.6, "kim", "ear_b05", "Kim's earpiece (IC-approved) · Rescue team on the way. Hold your position."),
     (123.8, "park", "ear_b06", "Park's earpiece · All units: radio silence. Emergency traffic only."),
     (128.7, "park", "ear_ping", "Park's earpiece · Nuri Station Park, respond."),
     (136.8, "park", "ear_ping", "Park's earpiece · Nuri Station Park, respond. (2)"),

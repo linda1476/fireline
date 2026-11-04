@@ -10,7 +10,7 @@ VO_VOICE, VO_STYLE = "Charon", "Narrate this at a brisk, confident documentary p
 EAR_VOICE, EAR_STYLE = "Kore", "Say this as a short, flat, synthetic earpiece announcement, clearly and a little quickly"
 
 VO = {
- "vo_01": "Bucheon, last month. Flammables reported at 8:48. Offensive strategy at 8:52. A firefighter isolated at 9:09, found at 9:35. Across nine thousand maydays, more than a third are missed on the first call.",
+ "vo_01": "Bucheon, last month. Flammables reported at 8:48, offensive strategy at 8:52. Isolation recognised at 9:09, rescue team ordered at 9:20, found at 9:35. Across more than nine thousand maydays, 35.6 percent are missed on the first call.",
  "vo_02": "Korea's AI for 119 listens to citizens calling in. Earshot listens to the crew. Two radio channels, Meta's Muse speech model on both, and an agent that decides who hears what.",
  "vo_03": "Five transmissions. One card. The exterior captain reports thinner drums on the third floor. Spark tags it danger, five and a half seconds after he stops talking. The commander declared offensive a minute ago, so the agent asks: confirm strategy? Kim, directly below, hears one sentence in her earpiece. Park, on the other side of the building, hears nothing. That's the point.",
  "vo_04": "Kim finds a victim. One gloved hold, one sentence. Muse transcribes it, the pin lands on the floor plan, and the crew at the front door is told to expect her.",

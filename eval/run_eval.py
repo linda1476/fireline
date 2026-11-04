@@ -95,7 +95,7 @@ def gate_ok(text: str) -> bool:
     try:
         from server.gate import should_triage
         return bool(should_triage(text))
-    except ImportError:  # TODO(eval): server.gate not present at build time; thin fallback
+    except ImportError:  # fallback for standalone use
         return len((text or "").split()) >= 2
 
 
@@ -110,7 +110,7 @@ crew_brief: at most 2 sentences, in the same language as the transcript."""
 async def run_triage(text: str, lang: str, channel: str) -> tuple[Triage, int, dict[str, Any]]:
     try:
         from server.triage import triage as _triage
-    except ImportError:  # TODO(eval): server.triage not present at build time; thin fallback on SparkClient
+    except ImportError:  # fallback for standalone use
         _triage = None
     if _triage is not None:
         return await _triage(text, lang, channel)
@@ -132,7 +132,7 @@ def run_verify(tri: Triage, text: str) -> bool:
         from server.verify import verify
         ok, _ = verify(tri, text)
         return bool(ok)
-    except ImportError:  # TODO(eval): server.verify fallback
+    except ImportError:  # fallback for standalone use
         return evidence_verbatim(tri.evidence_span, text)
 
 
@@ -146,7 +146,7 @@ def snap_unit(raw: str | None, roster: list[Unit], lang: str) -> str | None:
     try:
         from server.verify import snap_unit as _snap
         return _snap(raw, lang, {u.id: u for u in roster})  # verify.snap_unit(raw, lang, roster: dict)
-    except ImportError:  # TODO(eval): server.verify.snap_unit fallback (rapidfuzz over aliases)
+    except ImportError:  # fallback for standalone use (rapidfuzz over aliases)
         from rapidfuzz import fuzz
         best, best_s = None, 0.0
         r = norm(raw)
@@ -175,7 +175,7 @@ ASR_KEYWORD_MAX_CHARS = 30  # measured: 400 "ASR keyword N exceeds the maximum l
 
 def asr_keywords(lang: str, on: bool) -> list[str] | None:
     """kw on -> project list for lang minus terms the API rejects (>30 chars, e.g. 'personnel accountability
-    report' in keywords.json en); kw off -> []. TODO(keywords.json owner): drop/shorten that en term."""
+    report' in keywords.json en); kw off -> []. (that en term is kept as is)."""
     if not on:
         return []
     from server.config import load_keywords
@@ -185,7 +185,7 @@ def asr_keywords(lang: str, on: bool) -> list[str] | None:
 # ============================================================================ memo
 class Memo:
     """Input-hash memo (sha256(kind + canonical input)) for ASR and triage. EARSHOT_MEMO=1 / --memo.
-    TODO(eval): switch to server.cache.memo once its signature is final; this local file is equivalent."""
+    A local memo file equivalent to server.cache.memo."""
 
     def __init__(self, enabled: bool, path: Path = EVAL_DIR / ".memo.jsonl"):
         self.enabled, self.path, self.d = enabled, path, {}
