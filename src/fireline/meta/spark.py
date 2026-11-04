@@ -2,6 +2,11 @@
 
 Docs: https://dev.meta.ai/docs/structured-output , https://dev.meta.ai/docs/tool-calling
 Base URL https://api.meta.ai/v1, bearer MODEL_API_KEY.
+
+Observed 2026-11-04: Muse Spark 1.3 is a reasoning model (default effort "high");
+reasoning tokens count against max_tokens, so a small max_tokens returns EMPTY content.
+We therefore default to reasoning_effort="low" (fast, enough for extraction) and a
+generous max_tokens budget.
 """
 
 from __future__ import annotations
@@ -23,6 +28,11 @@ def _schema_for(model: type[BaseModel]) -> dict[str, Any]:
     """JSON schema in the shape Meta's response_format expects (no recursion, depth <= 10)."""
     schema = model.model_json_schema()
     return schema
+
+
+def _reasoning_kwargs(effort: str | None) -> dict[str, Any]:
+    """OpenAI-style reasoning_effort passthrough (Muse Spark accepts low/medium/high)."""
+    return {"reasoning_effort": effort} if effort else {}
 
 
 def _response_format(model: type[BaseModel]) -> dict[str, Any]:
@@ -68,9 +78,10 @@ class SparkClient:
         schema: type[T],
         *,
         temperature: float = 0.1,
-        max_tokens: int = 900,
+        max_tokens: int = 4000,
         model: str | None = None,
         retries: int = 1,
+        reasoning_effort: str | None = "low",
     ) -> tuple[T, int]:
         """Return (parsed object, latency_ms). Retries once with validation feedback."""
         self._guard()
@@ -88,6 +99,7 @@ class SparkClient:
                 response_format=_response_format(schema),
                 temperature=temperature,
                 max_tokens=max_tokens,
+                **_reasoning_kwargs(reasoning_effort),
             )
             content = resp.choices[0].message.content
             try:
@@ -110,8 +122,9 @@ class SparkClient:
         *,
         tools: list[dict[str, Any]] | None = None,
         temperature: float = 0.2,
-        max_tokens: int = 700,
+        max_tokens: int = 4000,
         model: str | None = None,
+        reasoning_effort: str | None = "low",
     ):
         """Raw chat completion (for tool-calling agent loops). Returns the SDK response."""
         self._guard()
@@ -121,6 +134,7 @@ class SparkClient:
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            **_reasoning_kwargs(reasoning_effort),
         )
         if tools:
             kwargs["tools"] = tools
@@ -134,9 +148,10 @@ class SparkClient:
         schema: type[T],
         *,
         temperature: float = 0.1,
-        max_tokens: int = 900,
+        max_tokens: int = 4000,
         model: str | None = None,
         retries: int = 1,
+        reasoning_effort: str | None = "low",
     ) -> tuple[T, int]:
         self._guard()
         assert self._sync is not None
@@ -153,6 +168,7 @@ class SparkClient:
                 response_format=_response_format(schema),
                 temperature=temperature,
                 max_tokens=max_tokens,
+                **_reasoning_kwargs(reasoning_effort),
             )
             content = resp.choices[0].message.content
             try:
@@ -171,7 +187,8 @@ class SparkClient:
         resp = self._sync.chat.completions.create(
             model=self.settings.spark_model,
             messages=[{"role": "user", "content": "Reply with the single word READY."}],
-            max_tokens=5,
+            max_tokens=400,
             temperature=0,
+            **_reasoning_kwargs("low"),
         )
         return (resp.choices[0].message.content or "").strip()
