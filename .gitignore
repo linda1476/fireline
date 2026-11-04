@@ -7,3 +7,7 @@ __pycache__/
 dist/
 out/
 
+
+data/logs/
+eval/.memo.jsonl
+data/cache/memo.jsonl

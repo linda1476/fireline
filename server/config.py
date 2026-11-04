@@ -35,7 +35,7 @@ class Settings:
     # Realtime ENDPOINTING splits a transmission at pauses ≥ ~0.86 s (smoke_b1.md): merge turns closer than this.
     turn_merge_gap_s: float = 1.5
     # Agent wake timeout before router_fallback takes over (seconds).
-    agent_timeout_s: float = float(os.environ.get("EARSHOT_AGENT_TIMEOUT", "8"))
+    agent_timeout_s: float = float(os.environ.get("EARSHOT_AGENT_TIMEOUT", "12"))
     # Demo-timescale rule thresholds (seconds); labelled "demo timescale" on screen.
     r1_ack_s: float = 10.0
     r1_level2_s: float = 20.0

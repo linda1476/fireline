@@ -1,0 +1,370 @@
+{
+ "meta": {
+  "n": 5,
+  "ran_at": "2026-11-04T18:52:39+0900",
+  "wall_s": 12.6,
+  "audio_provenance_summary": "tts_heami 24, tts_zira 12",
+  "reasoning_effort": "minimal",
+  "spark_model": "muse-spark-1.3",
+  "asr_model": "muse-voice-transcribe-1.0",
+  "partial": true,
+  "only": "L08,K07,K10,M01,E07",
+  "conditions_run": [
+   "clean_kw"
+  ]
+ },
+ "conditions": {
+  "clean_kw": {
+   "n": 5,
+   "errors": 0,
+   "gated": 0,
+   "mayday_recall": 1.0,
+   "mayday_tp": 5,
+   "mayday_n": 5,
+   "mayday_fp": 0,
+   "mayday_fp_ids": [],
+   "missed_mayday_ids": [],
+   "accuracy": 1.0,
+   "macro_f1": 1.0,
+   "critical_term_hit_rate": 1.0,
+   "critical_terms_hit": 3,
+   "critical_terms_total": 3,
+   "critical_terms_by_term": {
+    "긴급탈출": "1/1",
+    "맨다운": "1/1",
+    "Mayday": "1/1"
+   },
+   "unit_raw_exact": 1.0,
+   "unit_snapped_exact": 1.0,
+   "unit_n": 3,
+   "floor_exact": 1.0,
+   "floor_n": 4,
+   "codeword_masked_recall": "2/2",
+   "codeword_masked_ids": [
+    "L08",
+    "M01"
+   ],
+   "codeword_masked_hit_ids": [
+    "L08",
+    "M01"
+   ],
+   "evidence_verbatim_rate": 1.0,
+   "evidence_n": 5,
+   "evidence_empty": 0,
+   "spark_ms_p50": 4144.0,
+   "spark_ms_p95": 5672.6,
+   "asr_ms_p50": 3319.0,
+   "asr_ms_p95": 4249.0
+  }
+ },
+ "lines": [
+  {
+   "id": "L08",
+   "condition": "clean_kw",
+   "lang": "ko",
+   "channel": "TAC",
+   "reference": "지휘대장… 한빛구조대 김하늘… 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽. 공기 얼마 안 남았다.",
+   "transcript": "지휘대장 한빛구조대 김하늘 천장 무너져서 출구를 못 찾겠다 이층 동쪽 창고 쪽 공기 얼마 안 남았다..",
+   "asr_ms": 3545,
+   "spark_ms": 4144,
+   "gated": false,
+   "pred_tag": "MAYDAY",
+   "error": null,
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": "한빛구조대 김하늘",
+    "addressee": "지휘대장",
+    "location": {
+     "floor": 2,
+     "zone_hint": "동쪽 창고 쪽",
+     "raw": "이층 동쪽 창고 쪽"
+    },
+    "distress": {
+     "who": "한빛구조대 김하늘",
+     "what": "TRAPPED",
+     "where_raw": "이층 동쪽 창고 쪽",
+     "needs": null,
+     "air": "공기 얼마 안 남았다"
+    },
+    "victims": null,
+    "hazard_terms": [
+     "천장 무너져서"
+    ],
+    "status_change": "TRAPPED",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.92,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "천장 무너져서 출구를 못 찾겠다",
+    "crew_brief": "한빛구조대 김하늘이 이층 동쪽 창고 쪽에서 천장 붕괴로 출구를 찾지 못함. 공기 얼마 남지 않음."
+   },
+   "evidence_span": "천장 무너져서 출구를 못 찾겠다",
+   "evidence_ok": true,
+   "verify_ok": true,
+   "unit_raw": "한빛구조대 김하늘",
+   "unit_snapped": "kim",
+   "floor_pred": 2,
+   "distress_what": "TRAPPED",
+   "expected_tag": [
+    "MAYDAY"
+   ],
+   "tag_ok": true,
+   "codeword_masked": true,
+   "critical_terms": [],
+   "critical_hits": [],
+   "unit_expected": "kim",
+   "unit_raw_ok": true,
+   "unit_snapped_ok": true,
+   "floor_expected": 2,
+   "floor_ok": true
+  },
+  {
+   "id": "K07",
+   "condition": "clean_kw",
+   "lang": "ko",
+   "channel": "TAC",
+   "reference": "긴급탈출, 긴급탈출, 긴급탈출. 여기 한빛구조대 소방장 김하늘. 대원고립, 천장 붕괴로 퇴로 차단. 2층 동쪽 끝 창고 선반 옆, 올라온 계단에서 약 15미터. 공기잔량 절반 이하, 사다리와 공기용기 필요.",
+   "transcript": "긴급탈출. 긴급탈출. 긴급탈출. 여기 한빛구조대 소방장 김하늘. 대원고립. 천장 붕괴로 퇴로 차단. 2층 동쪽 끝 창고 선반 옆반역. 올라라온 계단에서 약 약 십오 미터. 공기잔량 절반 이하. 사다리와 공기용기 필요?.",
+   "asr_ms": 4425,
+   "spark_ms": 5674,
+   "gated": false,
+   "pred_tag": "MAYDAY",
+   "error": null,
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": "한빛구조대 소방장 김하늘",
+    "addressee": null,
+    "location": {
+     "floor": 2,
+     "zone_hint": "동쪽 끝 창고 선반 옆",
+     "raw": "2층 동쪽 끝 창고 선반 옆"
+    },
+    "distress": {
+     "who": "한빛구조대 소방장 김하늘",
+     "what": "TRAPPED",
+     "where_raw": "2층 동쪽 끝 창고 선반 옆",
+     "needs": "사다리와 공기용기 필요",
+     "air": "공기잔량 절반 이하"
+    },
+    "victims": null,
+    "hazard_terms": [
+     "천장 붕괴"
+    ],
+    "status_change": "TRAPPED",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.92,
+    "asr_uncertain": true,
+    "uncertain_reason": "거리 설명 부분(옆반역. 올라라온 계단에서 약 약 십오 미터)이 인식 오류로 불명확함",
+    "evidence_span": "대원고립. 천장 붕괴로 퇴로 차단",
+    "crew_brief": "한빛구조대 김하늘이 2층 동쪽 끝 창고에서 천장 붕괴로 고립됨. 공기 절반 이하, 사다리와 공기용기 필요."
+   },
+   "evidence_span": "대원고립. 천장 붕괴로 퇴로 차단",
+   "evidence_ok": true,
+   "verify_ok": true,
+   "unit_raw": "한빛구조대 소방장 김하늘",
+   "unit_snapped": "kim",
+   "floor_pred": 2,
+   "distress_what": "TRAPPED",
+   "expected_tag": [
+    "MAYDAY"
+   ],
+   "tag_ok": true,
+   "codeword_masked": false,
+   "critical_terms": [
+    "긴급탈출"
+   ],
+   "critical_hits": [
+    "긴급탈출"
+   ],
+   "unit_expected": "kim",
+   "unit_raw_ok": true,
+   "unit_snapped_ok": true,
+   "floor_expected": 2,
+   "floor_ok": true
+  },
+  {
+   "id": "K10",
+   "condition": "clean_kw",
+   "lang": "ko",
+   "channel": "TAC",
+   "reference": "상황실, 여기 누리구조대. 맨다운 발생, 맨다운 발생. 1층 후면 출입구 안쪽 3미터, 대원 1명 쓰러짐. 구급대 후면으로 요청.",
+   "transcript": "상황실, 여기 누리 구조대. 맨다운 발생. 맨다운 발생. 1층 후면 출입구 안쪽 3미터, 대원 한원 한 명 쓰러짐. 고급대 후면으로 요청..",
+   "asr_ms": 3319,
+   "spark_ms": 5667,
+   "gated": false,
+   "pred_tag": "MAYDAY",
+   "error": null,
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": "누리 구조대",
+    "addressee": "상황실",
+    "location": {
+     "floor": 1,
+     "zone_hint": "후면 출입구 안쪽 3미터",
+     "raw": "1층 후면 출입구 안쪽 3미터"
+    },
+    "distress": {
+     "who": "대원 한원 한 명",
+     "what": "UNKNOWN",
+     "where_raw": "1층 후면 출입구 안쪽 3미터",
+     "needs": "고급대 후면으로 요청",
+     "air": null
+    },
+    "victims": null,
+    "hazard_terms": [],
+    "status_change": "TRAPPED",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.92,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "맨다운 발생. 맨다운 발생.",
+    "crew_brief": "누리 구조대 맨다운 발생. 1층 후면 출입구 안쪽 3미터에서 대원 1명 쓰러짐."
+   },
+   "evidence_span": "맨다운 발생. 맨다운 발생.",
+   "evidence_ok": true,
+   "verify_ok": true,
+   "unit_raw": "누리 구조대",
+   "unit_snapped": null,
+   "floor_pred": 1,
+   "distress_what": "UNKNOWN",
+   "expected_tag": [
+    "MAYDAY"
+   ],
+   "tag_ok": true,
+   "codeword_masked": false,
+   "critical_terms": [
+    "맨다운"
+   ],
+   "critical_hits": [
+    "맨다운"
+   ],
+   "unit_expected": null,
+   "floor_expected": 1,
+   "floor_ok": true
+  },
+  {
+   "id": "M01",
+   "condition": "clean_kw",
+   "lang": "ko",
+   "channel": "TAC",
+   "reference": "지휘대장… 여기 누리센터 박준… 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다. 1층 서쪽 어디쯤. 빨리 와 달라.",
+   "transcript": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다. 1층 서측 어디쯤 발리와 달라",
+   "asr_ms": 2370,
+   "spark_ms": 3956,
+   "gated": false,
+   "pred_tag": "MAYDAY",
+   "error": null,
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": "누리센터 박준",
+    "addressee": "지휘대장",
+    "location": {
+     "floor": 1,
+     "zone_hint": "서측",
+     "raw": "1층 서측 어디쯤"
+    },
+    "distress": {
+     "who": "누리센터 박준",
+     "what": "LOST",
+     "where_raw": "1층 서측 어디쯤",
+     "needs": null,
+     "air": null
+    },
+    "victims": null,
+    "hazard_terms": [
+     "연기 때문에 앞이 안 보이고"
+    ],
+    "status_change": "TRAPPED",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.9,
+    "asr_uncertain": true,
+    "uncertain_reason": "끝부분 '발리와 달라' 인식 불명확",
+    "evidence_span": "연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다",
+    "crew_brief": "누리센터 박준이 1층 서측에서 퇴로를 잃음. 연기으로 시야 확보 불가."
+   },
+   "evidence_span": "연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다",
+   "evidence_ok": true,
+   "verify_ok": true,
+   "unit_raw": "누리센터 박준",
+   "unit_snapped": "park",
+   "floor_pred": 1,
+   "distress_what": "LOST",
+   "expected_tag": [
+    "MAYDAY"
+   ],
+   "tag_ok": true,
+   "codeword_masked": true,
+   "critical_terms": [],
+   "critical_hits": [],
+   "unit_expected": "park",
+   "unit_raw_ok": true,
+   "unit_snapped_ok": true,
+   "floor_expected": 1,
+   "floor_ok": true
+  },
+  {
+   "id": "E07",
+   "condition": "clean_kw",
+   "lang": "en",
+   "channel": "TAC",
+   "reference": "Mayday, Mayday, Mayday.",
+   "transcript": "Mayday, Mayday, Mayday.",
+   "asr_ms": 1375,
+   "spark_ms": 3472,
+   "gated": false,
+   "pred_tag": "MAYDAY",
+   "error": null,
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": null,
+    "addressee": null,
+    "location": {
+     "floor": null,
+     "zone_hint": null,
+     "raw": null
+    },
+    "distress": {
+     "who": null,
+     "what": "UNKNOWN",
+     "where_raw": null,
+     "needs": null,
+     "air": null
+    },
+    "victims": null,
+    "hazard_terms": [],
+    "status_change": "NONE",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.7,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "Mayday, Mayday, Mayday.",
+    "crew_brief": "Mayday call declared, no further details heard."
+   },
+   "evidence_span": "Mayday, Mayday, Mayday.",
+   "evidence_ok": true,
+   "verify_ok": true,
+   "unit_raw": null,
+   "unit_snapped": null,
+   "floor_pred": null,
+   "distress_what": "UNKNOWN",
+   "expected_tag": [
+    "MAYDAY"
+   ],
+   "tag_ok": true,
+   "codeword_masked": false,
+   "critical_terms": [
+    "Mayday"
+   ],
+   "critical_hits": [
+    "Mayday"
+   ],
+   "unit_expected": null,
+   "floor_expected": null
+  }
+ ]
+}

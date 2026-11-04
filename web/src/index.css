@@ -128,3 +128,17 @@
     @apply font-sans;
     }
 }
+/* ---- Earshot additions */
+html, body, #root {
+  height: 100%;
+}
+body {
+  font-size: 16px;
+}
+@keyframes escalate-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9); border-color: #ef4444; }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); border-color: #fca5a5; }
+}
+.escalate-pulse {
+  animation: escalate-pulse 1s ease-in-out infinite;
+}

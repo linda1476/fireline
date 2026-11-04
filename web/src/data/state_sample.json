@@ -1,0 +1,1209 @@
+{
+ "scenario_id": "hanbit",
+ "mode": "REPLAY",
+ "lang": "ko",
+ "running": true,
+ "t": 95.2,
+ "strategy": "OFFENSIVE",
+ "strategy_event_id": "evt_0001",
+ "units": {
+  "ic": {
+   "id": "ic",
+   "callsign": "지휘대장",
+   "name": null,
+   "crew": 1,
+   "channel": "CMD",
+   "role": "IC",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": null,
+   "zone_id": "OUT-CP",
+   "status": "OUT",
+   "interior": false,
+   "last_heard_t": 83.0,
+   "unanswered_pings": 0,
+   "heard_count": 0,
+   "total_count": 0,
+   "label_en": "Incident Commander"
+  },
+  "dispatch": {
+   "id": "dispatch",
+   "callsign": "상황실",
+   "name": null,
+   "crew": 1,
+   "channel": "CMD",
+   "role": "DISPATCH",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": null,
+   "zone_id": null,
+   "status": "OUT",
+   "interior": false,
+   "last_heard_t": null,
+   "unanswered_pings": 0,
+   "heard_count": 0,
+   "total_count": 0,
+   "label_en": "Dispatch (119 Control)"
+  },
+  "hanbit_center": {
+   "id": "hanbit_center",
+   "callsign": "한빛119안전센터 팀장",
+   "name": null,
+   "crew": 2,
+   "channel": "TAC",
+   "role": "EXTERIOR",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": "exterior recon (3F windows)",
+   "zone_id": "OUT-FRONT",
+   "status": "OUT",
+   "interior": false,
+   "last_heard_t": 34.6,
+   "unanswered_pings": 0,
+   "heard_count": 1,
+   "total_count": 6,
+   "label_en": "Hanbit Station Captain (exterior)"
+  },
+  "kim": {
+   "id": "kim",
+   "callsign": "한빛구조대",
+   "name": "김하늘",
+   "crew": 3,
+   "channel": "TAC",
+   "role": "CREW",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": "2F-E 우선탐색",
+   "zone_id": "2F-E-STORE",
+   "status": "TRAPPED",
+   "interior": true,
+   "last_heard_t": 92.0,
+   "unanswered_pings": 0,
+   "heard_count": 2,
+   "total_count": 5,
+   "label_en": "FF Kim (Hanbit Rescue)"
+  },
+  "park": {
+   "id": "park",
+   "callsign": "누리119안전센터",
+   "name": "박준",
+   "crew": 2,
+   "channel": "TAC",
+   "role": "CREW",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": "1F-W 인명검색",
+   "zone_id": "1F-W",
+   "status": "IN",
+   "interior": true,
+   "last_heard_t": 26.9,
+   "unanswered_pings": 1,
+   "heard_count": 1,
+   "total_count": 6,
+   "label_en": "FF Park (Nuri Station)"
+  },
+  "rit": {
+   "id": "rit",
+   "callsign": "동부구조대",
+   "name": null,
+   "crew": 4,
+   "channel": "TAC",
+   "role": "RIT",
+   "lang": "ko",
+   "aliases": [],
+   "assignment": "RIT standby",
+   "zone_id": "OUT-RIT",
+   "status": "OUT",
+   "interior": false,
+   "last_heard_t": null,
+   "unanswered_pings": 0,
+   "heard_count": 1,
+   "total_count": 7,
+   "label_en": "Dongbu Rescue (RIT)"
+  }
+ },
+ "zones": {
+  "1F-W": {
+   "id": "1F-W",
+   "floor": 1,
+   "label_ko": "1층 서측",
+   "label_en": "1F West",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     0,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     12
+    ],
+    [
+     0,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "primary"
+  },
+  "1F-E": {
+   "id": "1F-E",
+   "floor": 1,
+   "label_ko": "1층 동측",
+   "label_en": "1F East",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     10,
+     0
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     12
+    ],
+    [
+     10,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "2F-W": {
+   "id": "2F-W",
+   "floor": 2,
+   "label_ko": "2층 서측",
+   "label_en": "2F West",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     0,
+     0
+    ],
+    [
+     8,
+     0
+    ],
+    [
+     8,
+     12
+    ],
+    [
+     0,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "2F-STAIR": {
+   "id": "2F-STAIR",
+   "floor": 2,
+   "label_ko": "정면 계단",
+   "label_en": "Front stair",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     8,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     3
+    ],
+    [
+     8,
+     3
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "2F-E": {
+   "id": "2F-E",
+   "floor": 2,
+   "label_ko": "2층 동측",
+   "label_en": "2F East",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     10,
+     0
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     12
+    ],
+    [
+     10,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [
+    {
+     "event_id": "evt_0004",
+     "text": "천장으로 연소 확대 우려",
+     "t": 39.1
+    }
+   ],
+   "victim_reports": [],
+   "search_state": "primary"
+  },
+  "2F-E-OFFICE": {
+   "id": "2F-E-OFFICE",
+   "floor": 2,
+   "label_ko": "2층 계단 우측 사무실",
+   "label_en": "2F office (right of stair)",
+   "kind": "indoor",
+   "parent": "2F-E",
+   "polygon": [
+    [
+     10,
+     0
+    ],
+    [
+     14,
+     0
+    ],
+    [
+     14,
+     5
+    ],
+    [
+     10,
+     5
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [
+    {
+     "event_id": "evt_0006",
+     "count": 1,
+     "state": "EXTRACTING",
+     "text": "구조대상자 1명, 정면 계단으로 구출 중",
+     "t": 60.2
+    }
+   ],
+   "search_state": "searched"
+  },
+  "2F-E-STORE": {
+   "id": "2F-E-STORE",
+   "floor": 2,
+   "label_ko": "2층 동쪽 창고",
+   "label_en": "2F east storeroom",
+   "kind": "indoor",
+   "parent": "2F-E",
+   "polygon": [
+    [
+     15,
+     0
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     12
+    ],
+    [
+     15,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [
+    {
+     "event_id": "evt_0008",
+     "text": "천장 무너짐",
+     "t": 82.4
+    }
+   ],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "3F": {
+   "id": "3F",
+   "floor": 3,
+   "label_ko": "3층",
+   "label_en": "3F",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     0,
+     0
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     12
+    ],
+    [
+     0,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [
+    {
+     "event_id": "evt_0004",
+     "text": "인화물질 (신나 드럼 다수)",
+     "t": 39.1
+    }
+   ],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "ROOF": {
+   "id": "ROOF",
+   "floor": 4,
+   "label_ko": "옥상",
+   "label_en": "Roof",
+   "kind": "indoor",
+   "parent": null,
+   "polygon": [
+    [
+     0,
+     0
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     12
+    ],
+    [
+     0,
+     12
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "OUT-FRONT": {
+   "id": "OUT-FRONT",
+   "floor": null,
+   "label_ko": "정면 출입구",
+   "label_en": "Front entrance",
+   "kind": "outdoor",
+   "parent": null,
+   "polygon": [
+    [
+     8,
+     -3
+    ],
+    [
+     12,
+     -3
+    ],
+    [
+     12,
+     0
+    ],
+    [
+     8,
+     0
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "OUT-EAST": {
+   "id": "OUT-EAST",
+   "floor": null,
+   "label_ko": "동측 창문",
+   "label_en": "East windows",
+   "kind": "outdoor",
+   "parent": null,
+   "polygon": [
+    [
+     20,
+     3
+    ],
+    [
+     23,
+     3
+    ],
+    [
+     23,
+     9
+    ],
+    [
+     20,
+     9
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "OUT-REAR": {
+   "id": "OUT-REAR",
+   "floor": null,
+   "label_ko": "후면 출입구",
+   "label_en": "Rear entrance",
+   "kind": "outdoor",
+   "parent": null,
+   "polygon": [
+    [
+     8,
+     12
+    ],
+    [
+     12,
+     12
+    ],
+    [
+     12,
+     15
+    ],
+    [
+     8,
+     15
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "OUT-CP": {
+   "id": "OUT-CP",
+   "floor": null,
+   "label_ko": "지휘소 (정문 앞)",
+   "label_en": "Command post",
+   "kind": "outdoor",
+   "parent": null,
+   "polygon": [
+    [
+     4,
+     -11
+    ],
+    [
+     9,
+     -11
+    ],
+    [
+     9,
+     -8
+    ],
+    [
+     4,
+     -8
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  },
+  "OUT-RIT": {
+   "id": "OUT-RIT",
+   "floor": null,
+   "label_ko": "RIT 대기",
+   "label_en": "RIT staging",
+   "kind": "outdoor",
+   "parent": null,
+   "polygon": [
+    [
+     13,
+     -11
+    ],
+    [
+     18,
+     -11
+    ],
+    [
+     18,
+     -8
+    ],
+    [
+     13,
+     -8
+    ]
+   ],
+   "aliases": [],
+   "hazards": [],
+   "victim_reports": [],
+   "search_state": "none"
+  }
+ },
+ "transmissions": [
+  {
+   "id": "tx_0001",
+   "channel": "CMD",
+   "turn_id": "t1",
+   "unit_id": "ic",
+   "line_id": "L01",
+   "t_keyup": 0.0,
+   "t_final": 9.8,
+   "text_partial": "",
+   "text_final": "전 출동대, 여기 지휘대장. 지휘권 선언, 지휘위치 정문 앞. 3층 도장공장 화재, 공격전략. 한빛구조대 2층 동측 우선탐색, 누리센터 1층 서측 인명검색.",
+   "audio_url": "/samples/radio/L01.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0002",
+   "channel": "TAC",
+   "turn_id": "t2",
+   "unit_id": "kim",
+   "line_id": "L02",
+   "t_keyup": 12.0,
+   "t_final": 18.1,
+   "text_partial": "",
+   "text_final": "지휘대장, 여기 한빛구조대 소방장 김하늘. 정면 출입구로 3명 진입, 2층 동측 우선탐색 실시.",
+   "audio_url": "/samples/radio/L02.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0003",
+   "channel": "TAC",
+   "turn_id": "t3",
+   "unit_id": "park",
+   "line_id": "L03",
+   "t_keyup": 22.0,
+   "t_final": 26.9,
+   "text_partial": "",
+   "text_final": "지휘대장, 여기 누리119안전센터 소방교 박준. 1층 서측 진입, 인명검색 시작.",
+   "audio_url": "/samples/radio/L03.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0004",
+   "channel": "TAC",
+   "turn_id": "t4",
+   "unit_id": "hanbit_center",
+   "line_id": "L04",
+   "t_keyup": 34.0,
+   "t_final": 34.6,
+   "text_partial": "",
+   "text_final": "지휘대장, 여기 한빛119안전센터 팀장. 정면에서 3층 창문으로 확인, 도장공장 신나 드럼 다수, 인화물질 확인. 2층 동측 천장으로 연소 확대 우려.",
+   "audio_url": "/samples/radio/L04.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0006",
+   "channel": "PTT",
+   "turn_id": "t6",
+   "unit_id": "kim",
+   "line_id": "L06",
+   "t_keyup": 56.0,
+   "t_final": 59.7,
+   "text_partial": "",
+   "text_final": "2층 계단 우측 사무실 구조대상자 1명, 정면 계단으로 구출 중.",
+   "audio_url": "/samples/clean/L06.wav",
+   "source": "ptt",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0008",
+   "channel": "TAC",
+   "turn_id": "t8",
+   "unit_id": "kim",
+   "line_id": "L08",
+   "t_keyup": 78.0,
+   "t_final": 86.1,
+   "text_partial": "",
+   "text_final": "지휘대장… 한빛구조대 김하늘… 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽. 공기 얼마 안 남았다.",
+   "audio_url": "/samples/radio/L08.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0009",
+   "channel": "CMD",
+   "turn_id": "t9",
+   "unit_id": "ic",
+   "line_id": "L09",
+   "t_keyup": 78.5,
+   "t_final": 83.0,
+   "text_partial": "",
+   "text_final": "상황실, 여기 지휘대장. 추가 펌프차 정문 쪽으로 배치 바람.",
+   "audio_url": "/samples/radio/L09.wav",
+   "source": "replay",
+   "lang": "ko"
+  },
+  {
+   "id": "tx_0010",
+   "channel": "TAC",
+   "turn_id": "t10",
+   "unit_id": "kim",
+   "line_id": "L10",
+   "t_keyup": 92.0,
+   "t_final": null,
+   "text_partial": "사다리랑 공기용기 필요. 동측",
+   "text_final": null,
+   "audio_url": "/samples/radio/L10.wav",
+   "source": "replay",
+   "lang": "ko"
+  }
+ ],
+ "events": [
+  {
+   "id": "evt_0001",
+   "transmission_id": "tx_0001",
+   "t": 13.6,
+   "channel": "CMD",
+   "text": "전 출동대, 여기 지휘대장. 지휘권 선언, 지휘위치 정문 앞. 3층 도장공장 화재, 공격전략. 한빛구조대 2층 동측 우선탐색, 누리센터 1층 서측 인명검색.",
+   "triage": {
+    "tag": "ROUTINE",
+    "speaker_unit": "지휘대장",
+    "addressee": "전 출동대",
+    "location": {
+     "floor": null,
+     "zone_hint": "정문 앞",
+     "raw": "지휘위치 정문 앞"
+    },
+    "distress": null,
+    "victims": null,
+    "hazard_terms": [],
+    "status_change": "NONE",
+    "strategy_declared": "OFFENSIVE",
+    "needs_ack": false,
+    "confidence": 0.92,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "공격전략",
+    "crew_brief": null
+   },
+   "speaker_unit_snapped": "ic",
+   "zone_id_snapped": "OUT-CP",
+   "latency": {
+    "asr_ms": 620,
+    "triage_ms": 3150,
+    "total_ms": 13600
+   },
+   "evidence_verified": true,
+   "source": "replay"
+  },
+  {
+   "id": "evt_0004",
+   "transmission_id": "tx_0004",
+   "t": 39.1,
+   "channel": "TAC",
+   "text": "지휘대장, 여기 한빛119안전센터 팀장. 정면에서 3층 창문으로 확인, 도장공장 신나 드럼 다수, 인화물질 확인. 2층 동측 천장으로 연소 확대 우려.",
+   "triage": {
+    "tag": "DANGER",
+    "speaker_unit": "한빛119안전센터 팀장",
+    "addressee": "지휘대장",
+    "location": {
+     "floor": 3,
+     "zone_hint": "3층 창문",
+     "raw": "3층 창문"
+    },
+    "distress": null,
+    "victims": null,
+    "hazard_terms": [
+     "인화물질",
+     "신나 드럼",
+     "연소 확대"
+    ],
+    "status_change": "NONE",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.9,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "신나 드럼 다수, 인화물질 확인",
+    "crew_brief": "3층 인화물질 다수, 2층 동측 천장 연소 확대 우려."
+   },
+   "speaker_unit_snapped": "hanbit_center",
+   "zone_id_snapped": "3F",
+   "latency": {
+    "asr_ms": 610,
+    "triage_ms": 3870,
+    "total_ms": 5100
+   },
+   "evidence_verified": true,
+   "source": "replay"
+  },
+  {
+   "id": "evt_0006",
+   "transmission_id": "tx_0006",
+   "t": 60.2,
+   "channel": "PTT",
+   "text": "2층 계단 우측 사무실 구조대상자 1명, 정면 계단으로 구출 중.",
+   "triage": {
+    "tag": "VICTIM_FOUND",
+    "speaker_unit": null,
+    "addressee": null,
+    "location": {
+     "floor": 2,
+     "zone_hint": "계단 우측 사무실",
+     "raw": "2층 계단 우측 사무실"
+    },
+    "distress": null,
+    "victims": {
+     "count": 1,
+     "where_raw": "2층 계단 우측 사무실",
+     "state": "EXTRACTING"
+    },
+    "hazard_terms": [],
+    "status_change": "NONE",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.93,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "구조대상자 1명, 정면 계단으로 구출 중",
+    "crew_brief": "2층 사무실 구조대상자 1명 구출 중, 정면 계단 사용."
+   },
+   "speaker_unit_snapped": "kim",
+   "zone_id_snapped": "2F-E-OFFICE",
+   "latency": {
+    "asr_ms": 250,
+    "triage_ms": 3600,
+    "total_ms": 4200
+   },
+   "evidence_verified": true,
+   "source": "ptt"
+  },
+  {
+   "id": "evt_0008",
+   "transmission_id": "tx_0008",
+   "t": 82.4,
+   "channel": "TAC",
+   "text": "지휘대장… 한빛구조대 김하늘… 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽. 공기 얼마 안 남았다.",
+   "triage": {
+    "tag": "MAYDAY",
+    "speaker_unit": "한빛구조대 김하늘",
+    "addressee": "지휘대장",
+    "location": {
+     "floor": 2,
+     "zone_hint": "동쪽 창고",
+     "raw": "2층 동쪽 창고 쪽"
+    },
+    "distress": {
+     "who": "한빛구조대 김하늘",
+     "what": "TRAPPED",
+     "where_raw": "2층 동쪽 창고 쪽",
+     "needs": null,
+     "air": "공기 얼마 안 남았다"
+    },
+    "victims": null,
+    "hazard_terms": [
+     "천장 무너져서"
+    ],
+    "status_change": "TRAPPED",
+    "strategy_declared": "NONE",
+    "needs_ack": true,
+    "confidence": 0.88,
+    "asr_uncertain": false,
+    "uncertain_reason": null,
+    "evidence_span": "천장 무너져서 출구를 못 찾겠다",
+    "crew_brief": "긴급탈출: 김하늘 2층 동쪽 창고 고립, 무전 통제."
+   },
+   "speaker_unit_snapped": "kim",
+   "zone_id_snapped": "2F-E-STORE",
+   "latency": {
+    "asr_ms": 640,
+    "triage_ms": 3760,
+    "total_ms": 4400
+   },
+   "evidence_verified": true,
+   "source": "replay"
+  }
+ ],
+ "cards": [
+  {
+   "id": "card_0001",
+   "kind": "DANGER",
+   "title": "위험 · 3층 · 인화물질",
+   "title_en": "Danger · 3F · flammables",
+   "event_ids": [
+    "evt_0004"
+   ],
+   "rule_id": null,
+   "priority": 1,
+   "state": "open",
+   "unit_id": "hanbit_center",
+   "zone_id": "3F",
+   "fields": {
+    "where": "3층",
+    "terms": "인화물질, 신나 드럼, 연소 확대"
+   },
+   "missing_fields": [],
+   "evidence_span": "신나 드럼 다수, 인화물질 확인",
+   "channel": "TAC",
+   "created_t": 39.1,
+   "acked_t": null,
+   "resolved_t": null,
+   "escalation_level": 0,
+   "latency_ms": 5100,
+   "note": null
+  },
+  {
+   "id": "card_0002",
+   "kind": "VICTIM_FOUND",
+   "title": "구조대상자 · 1명 · 2층 계단 우측 사무실",
+   "title_en": "Victim found · 1 · 2F office",
+   "event_ids": [
+    "evt_0006"
+   ],
+   "rule_id": null,
+   "priority": 2,
+   "state": "open",
+   "unit_id": "kim",
+   "zone_id": "2F-E-OFFICE",
+   "fields": {
+    "count": "1",
+    "where": "2층 계단 우측 사무실",
+    "state": "EXTRACTING"
+   },
+   "missing_fields": [],
+   "evidence_span": "구조대상자 1명, 정면 계단으로 구출 중",
+   "channel": "PTT",
+   "created_t": 60.2,
+   "acked_t": null,
+   "resolved_t": null,
+   "escalation_level": 0,
+   "latency_ms": 4200,
+   "note": null
+  },
+  {
+   "id": "card_0003",
+   "kind": "MAYDAY",
+   "title": "긴급탈출 · 한빛구조대 김하늘 · 2F-E-STORE",
+   "title_en": "MAYDAY · Hanbit Rescue Kim · 2F east storeroom",
+   "event_ids": [
+    "evt_0008"
+   ],
+   "rule_id": null,
+   "priority": 0,
+   "state": "escalated",
+   "unit_id": "kim",
+   "zone_id": "2F-E-STORE",
+   "fields": {
+    "who": "한빛구조대 김하늘",
+    "what": "대원고립",
+    "where": "2층 동쪽 창고",
+    "needs": null,
+    "air": "공기 얼마 안 남았다"
+   },
+   "missing_fields": [
+    "needs"
+   ],
+   "evidence_span": "천장 무너져서 출구를 못 찾겠다",
+   "channel": "TAC",
+   "created_t": 82.4,
+   "acked_t": null,
+   "resolved_t": null,
+   "escalation_level": 1,
+   "latency_ms": 4400,
+   "note": null
+  }
+ ],
+ "proposals": [
+  {
+   "id": "prop_0001",
+   "card_id": "card_0001",
+   "kind": "CONFIRM_STRATEGY",
+   "units": [
+    "ic"
+   ],
+   "text": "공격전략 유지 여부 확인 (3층 인화물질)",
+   "rationale": "R3: DANGER reported while strategy is OFFENSIVE",
+   "state": "pending",
+   "evidence_event_id": "evt_0004",
+   "created_t": 40.0,
+   "decided_t": null,
+   "source": "rule"
+  },
+  {
+   "id": "prop_0002",
+   "card_id": "card_0003",
+   "kind": "RIT_DEPLOY",
+   "units": [
+    "rit"
+   ],
+   "text": "동부구조대 RIT 투입: 2층 동쪽 창고, 김하늘 구조",
+   "rationale": "MAYDAY evt_0008: trapped, air low, location 2F-E-STORE",
+   "state": "pending",
+   "evidence_event_id": "evt_0008",
+   "created_t": 88.9,
+   "decided_t": null,
+   "source": "agent"
+  }
+ ],
+ "briefs": [
+  {
+   "id": "brief_0001",
+   "unit_id": "kim",
+   "decision": "push",
+   "text": "3층 인화물질 다수, 2층 동측 천장 연소 확대 우려.",
+   "priority": "P1",
+   "reason": "kim is in 2F-E, directly below 3F hazard",
+   "evidence_event_id": "evt_0004",
+   "created_t": 44.8,
+   "spoken_t": 45.0,
+   "source": "agent",
+   "lang": "ko"
+  },
+  {
+   "id": "brief_0002",
+   "unit_id": "park",
+   "decision": "hold",
+   "text": "3층 인화물질 다수.",
+   "priority": "P2",
+   "reason": "park in 1F-W, hazard not in or above zone",
+   "evidence_event_id": "evt_0004",
+   "created_t": 44.9,
+   "spoken_t": null,
+   "source": "agent",
+   "lang": "ko"
+  },
+  {
+   "id": "brief_0003",
+   "unit_id": "rit",
+   "decision": "push",
+   "text": "긴급탈출: 김하늘 2층 동쪽 창고 고립. 투입 준비.",
+   "priority": "P0",
+   "reason": "MAYDAY — RIT must stage",
+   "evidence_event_id": "evt_0008",
+   "created_t": 87.6,
+   "spoken_t": 87.8,
+   "source": "agent",
+   "lang": "ko"
+  },
+  {
+   "id": "brief_0004",
+   "unit_id": "kim",
+   "decision": "push",
+   "text": "김하늘, 필요한 것 말하라.",
+   "priority": "P0",
+   "reason": "MAYDAY card missing SOP 109 'needs'",
+   "evidence_event_id": "evt_0008",
+   "created_t": 88.2,
+   "spoken_t": 88.4,
+   "source": "agent",
+   "lang": "ko"
+  }
+ ],
+ "trace": [
+  {
+   "id": "tr_0001",
+   "t": 82.5,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "wake",
+   "payload": {
+    "snapshot_size": 3120,
+    "round": 1
+   }
+  },
+  {
+   "id": "tr_0002",
+   "t": 86.9,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "reasoning",
+   "payload": {
+    "summary": "Kim trapped in 2F-E-STORE, air low, needs unknown. Alert RIT (P0), ask Kim for needs, propose RIT deploy; Park is on 1F-W and not affected."
+   }
+  },
+  {
+   "id": "tr_0003",
+   "t": 87.4,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "tool_call",
+   "payload": {
+    "tool": "send_brief",
+    "call_id": "c1",
+    "args": {
+     "unit_id": "rit",
+     "text": "긴급탈출: 김하늘 2층 동쪽 창고 고립. 투입 준비.",
+     "priority": "P0",
+     "reason": "MAYDAY — RIT must stage",
+     "evidence_event_id": "evt_0008"
+    }
+   }
+  },
+  {
+   "id": "tr_0004",
+   "t": 87.5,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "checker",
+   "payload": {
+    "tool": "send_brief",
+    "call_id": "c1",
+    "ok": true,
+    "error": null
+   }
+  },
+  {
+   "id": "tr_0005",
+   "t": 87.6,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "delivery",
+   "payload": {
+    "brief_id": "brief_0003",
+    "unit_id": "rit",
+    "decision": "push"
+   }
+  },
+  {
+   "id": "tr_0006",
+   "t": 87.9,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "tool_call",
+   "payload": {
+    "tool": "send_brief",
+    "call_id": "c2",
+    "args": {
+     "unit_id": "park",
+     "text": "2층 동쪽 창고 대원 고립, 지원 대기.",
+     "priority": "P1",
+     "reason": "inform nearby crew",
+     "evidence_event_id": "evt_0008"
+    }
+   }
+  },
+  {
+   "id": "tr_0007",
+   "t": 88.0,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "checker",
+   "payload": {
+    "tool": "send_brief",
+    "call_id": "c2",
+    "ok": false,
+    "error": "invariant 1: park is in 1F-W, not in/entering 2F-E-STORE (non-P0 brief)"
+   }
+  },
+  {
+   "id": "tr_0008",
+   "t": 88.9,
+   "wake_id": "wake_0004",
+   "wake_reason": "event:evt_0008 MAYDAY",
+   "kind": "tool_call",
+   "payload": {
+    "tool": "propose_order",
+    "call_id": "c3",
+    "args": {
+     "kind": "RIT_DEPLOY",
+     "units": [
+      "rit"
+     ],
+     "text": "동부구조대 RIT 투입: 2층 동쪽 창고, 김하늘 구조",
+     "rationale": "MAYDAY evt_0008",
+     "evidence_event_id": "evt_0008"
+    }
+   }
+  }
+ ],
+ "counters": {
+  "transmissions": 8,
+  "events": 7,
+  "cards_open": 3,
+  "cards_total": 3,
+  "cards_queued": 0,
+  "unacked": 3,
+  "held": 13,
+  "pushed": 3,
+  "checker_rejections": 1,
+  "agent_wakes": 3,
+  "fallback_routes": 0
+ },
+ "building": {
+  "floors": 3,
+  "height_m": 12,
+  "footprint_m": [
+   20,
+   12
+  ],
+  "footprint": [
+   [
+    0,
+    0
+   ],
+   [
+    20,
+    0
+   ],
+   [
+    20,
+    12
+   ],
+   [
+    0,
+    12
+   ]
+  ],
+  "kind_ko": "지상 3층 철골조 도장공장",
+  "kind_en": "3-storey steel-frame paint factory",
+  "collapse_ring": {
+   "center": [
+    10,
+    6
+   ],
+   "radius_m": 18,
+   "label_ko": "붕괴위험 반경 1.5H (SOP 205)",
+   "label_en": "Collapse zone 1.5× height (SOP 205)"
+  },
+  "site": {
+   "xmin": -16,
+   "xmax": 36,
+   "ymin": -14,
+   "ymax": 26
+  }
+ },
+ "thresholds": {
+  "R1": 10,
+  "R1_level2": 20,
+  "R2": 60,
+  "R2_ping_gap": 8,
+  "R4": 30,
+  "R5": 60
+ }
+}
