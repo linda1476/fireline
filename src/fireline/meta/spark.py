@@ -12,6 +12,7 @@ generous max_tokens budget.
 from __future__ import annotations
 
 import json
+import logging
 import time
 from typing import Any, TypeVar
 
@@ -28,6 +29,29 @@ def _schema_for(model: type[BaseModel]) -> dict[str, Any]:
     """JSON schema in the shape Meta's response_format expects (no recursion, depth <= 10)."""
     schema = model.model_json_schema()
     return schema
+
+
+log = logging.getLogger("fireline.spark")
+
+
+def _truncated(resp: Any) -> bool:
+    try:
+        return resp.choices[0].finish_reason == "length"
+    except Exception:
+        return False
+
+
+def _log_parse_failure(resp: Any, content: str | None, err: Exception, attempt: int) -> None:
+    try:
+        fr = resp.choices[0].finish_reason
+        usage = resp.usage.model_dump() if resp.usage else {}
+        rt = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+        log.warning(
+            "spark parse failure attempt=%d finish_reason=%s completion_tokens=%s reasoning_tokens=%s content=%r err=%s",
+            attempt, fr, usage.get("completion_tokens"), rt, (content or "")[:200], str(err)[:200],
+        )
+    except Exception:
+        log.warning("spark parse failure attempt=%d content=%r err=%s", attempt, (content or "")[:200], err)
 
 
 def _reasoning_kwargs(effort: str | None) -> dict[str, Any]:
@@ -107,6 +131,11 @@ class SparkClient:
                 return obj, int((time.perf_counter() - t0) * 1000)
             except (ValidationError, MetaAPIError, json.JSONDecodeError) as e:
                 last_err = e
+                _log_parse_failure(resp, content, e, attempt)
+                if _truncated(resp):
+                    # reasoning + answer did not fit: retry with a bigger budget, no feedback
+                    max_tokens = max(max_tokens * 2, 6000)
+                    continue
                 messages.append({"role": "assistant", "content": content or ""})
                 messages.append(
                     {
@@ -176,6 +205,10 @@ class SparkClient:
                 return obj, int((time.perf_counter() - t0) * 1000)
             except (ValidationError, MetaAPIError, json.JSONDecodeError) as e:
                 last_err = e
+                _log_parse_failure(resp, content, e, 0)
+                if _truncated(resp):
+                    max_tokens = max(max_tokens * 2, 6000)
+                    continue
                 messages.append({"role": "assistant", "content": content or ""})
                 messages.append({"role": "user", "content": f"Your JSON did not validate: {e}. Return corrected JSON only."})
         raise MetaAPIError(f"structured output failed: {last_err}")
