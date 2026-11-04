@@ -119,7 +119,11 @@ def main() -> None:
             continue
         clean, radio = CLEAN / f"{lid}.wav", RADIO / f"{lid}.wav"
         raw = find_raw(lid)
-        source = "own_voice" if raw else ("tts_heami" if ln["lang"] == "ko" else "tts_zira")
+        side = RAW / f"{lid}.json"   # sidecar written by scripts/gemini_tts.py
+        if raw and side.exists():
+            source = json.loads(side.read_text(encoding="utf-8")).get("source", "tts_gemini")
+        else:
+            source = "own_voice" if raw else ("tts_heami" if ln["lang"] == "ko" else "tts_zira")
         need_clean = args.force or not clean.exists() or prov.get(lid, {}).get("source") != source \
             or (raw and raw.stat().st_mtime > clean.stat().st_mtime)
         if need_clean and not args.radio_only:
@@ -135,8 +139,9 @@ def main() -> None:
         prov[lid] = {"source": source, "lang": ln["lang"], "duration_s": round(duration(clean), 2), "text": ln["text"]}
         print(f"{lid:4s} {source:10s} {prov[lid]['duration_s']:5.1f}s  {ln['text'][:40]}")
     prov_path.write_text(json.dumps(prov, ensure_ascii=False, indent=1), encoding="utf-8")
-    n_own = sum(1 for v in prov.values() if v["source"] == "own_voice")
-    print(f"done: {len(prov)} lines, {n_own} own voice, {len(prov) - n_own} TTS → {prov_path}")
+    from collections import Counter
+
+    print(f"done: {len(prov)} lines, sources {dict(Counter(v['source'] for v in prov.values()))} → {prov_path}")
 
 
 if __name__ == "__main__":

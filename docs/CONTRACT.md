@@ -19,7 +19,7 @@ server/
                      snap_zone(raw_hints, floor=None, lang="ko", zones=None) → zone_id|None (floor = preference, not filter);
                      snap_event(triage, text, lang) → (verified, triage', unit_id, zone_id)
   world.py           World: state, ids, append-only log, apply_event(), 1 Hz tick → rules, WS broadcast via a callback
-  rules.py           R1..R5 over World (pure functions on state + t; return actions)
+  rules.py           R1..R7 over World (pure functions on state + t; return actions; R6/R7 = MAYDAY safety nets)
   agent.py           RelevanceAgent: wake(reason, event) → tool calls via Spark Responses API, ≤3 rounds, agent_timeout_s (12 s)
                      → router fallback delivers, the wake continues in the background (late calls applied, deduped)
   checker.py         check(tool_name, args, state, now_t, recent_pushes) → (ok, error)  (invariants 1–4, 6, 7; 5 at wake end);
@@ -43,7 +43,7 @@ PCM frames (1x) ─► RealtimeTranscriber (ENDPOINTING, per channel) ─► tra
 text_final ─► gate.should_triage ─► triage.triage (Spark strict JSON) ─► verify (evidence, snap unit/zone)
            ─► Event ─► world.apply_event: units/zones/strategy/cards(dedupe, ≤5 open) → WS "event","card","unit","zone"
            ─► agent.wake (non-ROUTINE) ‖ router_fallback (timeout / agent cut) ─► briefs → WS "brief","trace"
-world.tick (1 Hz) ─► rules R1..R5 ─► escalations / pings / RULE cards / proposals → WS
+world.tick (1 Hz) ─► rules R1..R7 ─► escalations / pings / RULE cards / proposals → WS
 ```
 
 Measured facts that shape this (research/smoke_b1.md): strict `anyOf`-null works (no sentinels); triage uses
@@ -59,7 +59,13 @@ Korean matching downstream: strip spaces, map Hangul numerals (일층→1층), t
 Console: set `sys.stdout.reconfigure(encoding="utf-8")` in every entry point (Windows cp949 crashes on Korean).
 
 Latency fields (ms, all measured, shown on the card badge): `asr_ms` = end of speech → final (realtime) or request RTT
-(file); `triage_ms` = Spark RTT; `total_ms` = key-up → Event.
+(file); `triage_ms` = Spark RTT; `total_ms` = key-up → Event (includes the clip's own duration); `after_speech_ms` =
+end of transmission → Event (≥ 0) = `total_ms` − (`Transmission.t_end` − `t_keyup`) (`models.after_speech_ms`; clips play
+at 1× even with `speed`, so the subtraction is wall-exact). It is the PRIMARY badge number ("4.3 s after end of
+transmission"); `total_ms` is secondary. `Transmission.t_end` (scenario s) = key-up + clip duration (replay: WAV length;
+PTT: the clip's WAV length, and after_speech_ms is measured from the wall time the last PCM frame was sent; button: = key-up; live mic: last speech end). `Card.latency_after_speech_ms` copies it
+(`Card.latency_ms` stays = `total_ms`). The CLI prints it too. Runs recorded before these fields replay with 0 / null
+(pydantic defaults); the recorder needs no change (it dumps the models).
 
 **LIVE vs REPLAY (cache.py).** LIVE calls Meta and `cache.py` records every outbound WS message (`{t, type, payload}`)
 plus every REST action (`{t, method, path, body}`) of the run to `data/cache/run_<timestamp>.jsonl`; `POST
@@ -111,6 +117,8 @@ to it; `unit.heard_count` += 1 per Brief(push) to it; `counters.held` = Σ(total
 | R3 | Event tag DANGER while state.strategy == OFFENSIVE | Proposal CONFIRM_STRATEGY (source rule) linked to the DANGER card |
 | R4 | VICTIM_FOUND card, victims.state != EXTRACTING, no unit assigned within 30 s | Proposal ASSIGN |
 | R5 | unit.status LOW_AIR or HELP_NEEDED card without EXITING event from that unit within 60 s | escalate card (level 1) |
+| R6 | MAYDAY card (not resolved, unit known) with a missing SOP 109 field (who/what/where/needs; air is optional and not asked) and no ask for that field sent to that unit (any source) ≥ `r6_ask_s` (6 s) after `created_t` | ask via the world (same effect as the agent tool): WS "ask" {unit_id, field, text} + Brief(push, P0, source rule, reason "SOP 109 missing field: <f>", text = `ASK_FIELD_KO[f]`); trace `tool_call` + `delivery` with `source: "rule"`, wake_reason `rule:R6:<unit>` |
+| R7 | MAYDAY card (not resolved) with `fields.where` known and no standing RIT_DEPLOY proposal ≥ `r7_rit_s` (15 s) after `created_t` | Proposal RIT_DEPLOY (source rule, units [RIT], text "신속동료구조팀 <zone label> 투입 (<access>)", access = nearest outdoor: 2F-E* → 동측 창문, 1F-W → 정면 출입구) and, if none yet, RADIO_SILENCE (all CREW/RIT/EXTERIOR units except the member in distress, "전 출동대 무선 침묵, 긴급탈출 관련 교신만"). A kind the IC rejected for this card is not re-proposed. |
 
 World notes: R2 skips a unit with any non-resolved MAYDAY/R2 card (acked counts) or status TRAPPED; R5's LOW_AIR branch
 escalates only that unit's MAYDAY card (plus any HELP_NEEDED card). An Event moves its speaker to the snapped zone only
@@ -128,8 +136,16 @@ with note "found OK". A crew ack (`POST /api/crew/{unit}/ack`) does the same.
 Wake reasons: `event:<id>` (non-ROUTINE), `rule:<R>:<unit>`, `button:<unit>:<kind>`, `proposal_approved:<id>`.
 Input (round 1, kept cheap): open cards only, units with role CREW/RIT/EXTERIOR, zones with hazards/victims (+ the event
 zone), last 1 brief per unit, the triggering event incl. `crew_brief`, `related_zones` and `distressed_unit`.
-Round 1 runs at `agent_round1_reasoning_effort` ("minimal") with `max_output_tokens` 1500 (re-issued at 4000 if it comes
-back `incomplete` with no tool call); later rounds use `agent_reasoning_effort` ("low") and 4000. Responses API, tools
+Round 1 runs at `agent_round1_reasoning_effort` ("minimal") with `max_output_tokens` 4000 (a token cap never makes a short
+answer faster, it only truncates). A response that is `incomplete` or carries any function_call with empty / unparseable
+arguments is truncated: ALL its calls are discarded (never applied, never sent to the checker), a `reasoning` trace
+`{note: "truncated, retrying with 4000"}` is written and the same round is re-issued once immediately (not chained via
+`previous_response_id`); truncated again → treated as no calls (gap fill). Later rounds use `agent_reasoning_effort`
+("low") and 4000. Prompt order on a MAYDAY wake: request_missing_field for each missing field (to the distressed unit) →
+propose_order RIT_DEPLOY (`event.rit_access`) + RADIO_SILENCE → P0 briefs to the other interior units → escalate_to_ic;
+on HELP_NEEDED that fills a MAYDAY's needs, RIT_DEPLOY if not yet proposed. Proposal dedupe: RIT_DEPLOY / RADIO_SILENCE /
+WITHDRAW are one per incident (any pending/edited/approved proposal of that kind → `deduped`), other kinds per evidence
+event; asking a unit for a field it was already asked (agent or R6) → `deduped`. Responses API, tools
 below, ≤3 rounds via `previous_response_id` + `function_call_output`. At `agent_timeout_s` (12 s) the `router_fallback`
 delivers immediately and `wake()` returns; the loop keeps running in the background (≤ 45 s) and its late calls are
 applied when they pass the checker and are not duplicates (send_brief to a unit that already has a push for the same
@@ -142,8 +158,8 @@ Every tool result is `{"ok": true, ...}` or `{"ok": false, "error": "..."}` (che
 | get_unit_state | unit_id | read |
 | send_brief | unit_id, text, priority P0/P1/P2, reason, evidence_event_id | Brief(push) → WS "brief"; unit.heard_count++ |
 | hold | unit_id, event_id, reason | Brief(hold) → counters.held++ |
-| request_missing_field | unit_id, field who/what/where/needs/air | WS "ask" {unit_id, field, text}; Brief(push, P0) |
-| escalate_to_ic | event_id, reason | card.escalation_level = max(1, ·), WS "escalation" |
+| request_missing_field | unit_id, field who/what/where/needs/air | WS "ask" {unit_id, field, text}; Brief(push, P0); text = `models.ASK_FIELD_KO[field]` (who "소속과 이름을 말하십시오", what "상황(원인)을 말하십시오", where "현재 위치, 지나온 위치를 말하십시오", needs "필요한 것이 무엇입니까? 사다리, 공기용기 등", air "공기잔량을 보고하십시오"); crew UI label from `field` via `ASK_FIELD_LABEL_KO` |
+| escalate_to_ic | event_id, reason | card.escalation_level = max(1, ·), WS "escalation"; only for crew-safety cards (MAYDAY / HELP_NEEDED / RULE, or a card already at escalation ≥ 1), else rejected "not a crew-safety card" |
 | propose_order | kind, units[], text, rationale, evidence_event_id | Proposal(pending) → WS "proposal" |
 | ping_unit | unit_id | WS "ping"; unanswered_pings++ |
 
@@ -191,7 +207,8 @@ speaks `text` with `speechSynthesis` (`ko-KR`/`en-US`), labelled "TTS: browser (
 ## WebSocket `/ws` (server → client only; one socket per screen; all screens receive everything)
 
 `{"type": T, "payload": P}` with T/P:
-`snapshot` State · `clock` {t, running, mode} (1 Hz) · `transmission` Transmission (re-sent on every partial, same id) ·
+`snapshot` State · `clock` {t, running, mode} (1 Hz; `running` is true from the moment POST /api/scenario/start returns —
+the player / replayer set it in `start()` — until stop or the end of the run) · `transmission` Transmission (re-sent on every partial, same id) ·
 `event` Event · `card` Card (re-sent on every change) · `proposal` Proposal · `brief` Brief · `unit` Unit · `zone` Zone ·
 `trace` TraceEntry · `counters` Counters · `audio_cue` {channel, line_id, audio_url, t} (UI plays the clip on the lane) ·
 `escalation` {card_id, level} · `ping` {unit_id, n, t, ping_id} · `ask` {unit_id, field, text} · `strategy` {strategy, event_id}.
@@ -214,8 +231,8 @@ evidence-span verbatim rate, Spark latency p50/p95. Writes `eval/results.json` (
 ## Conventions
 
 - ids: `tx_000N`, `evt_000N`, `card_000N`, `prop_000N`, `brief_000N`, `tr_000N` (World counters).
-- Never log or print the API key. Never pass max_tokens < 3000 to Spark, except agent round 1 (1500 at "minimal",
-  re-issued at 4000 on `incomplete`). Always `reasoning_effort` from Settings.
+- Never log or print the API key. Never pass max_tokens < 3000 to Spark (agent round 1 included: 4000 at "minimal").
+  Always `reasoning_effort` from Settings.
 - ASR keywords ≤ 30 characters each (`load_keywords` drops and logs longer ones; the API answers 400).
 - Korean on screen for fire terms (긴급탈출, 구조대상자, 우선탐색); English UI chrome; `label_en`/`text_en` for subtitles.
 - Every number shown as latency is measured in that run; nothing hard-coded.

@@ -83,7 +83,7 @@ class World:
         st.thresholds = {
             "R1_ack_s": th.r1_ack_s, "R1_level2_s": th.r1_level2_s, "R2_silent_s": th.r2_silent_s,
             "R2_ping_gap_s": th.r2_ping_gap_s, "R2_pings": float(th.r2_pings), "R4_assign_s": th.r4_assign_s,
-            "R5_exit_s": th.r5_exit_s, "max_open_cards": float(th.max_open_cards), "dedupe_window_s": th.dedupe_window_s,
+            "R5_exit_s": th.r5_exit_s, "R6_ask_s": th.r6_ask_s, "R7_rit_s": th.r7_rit_s, "max_open_cards": float(th.max_open_cards), "dedupe_window_s": th.dedupe_window_s,
         }
 
     # ------------------------------------------------------------------ plumbing
@@ -327,6 +327,7 @@ class World:
             # created_t = when the card became visible (world clock), not the key-up Event.t: the card only exists
             # after ASR + triage (total_ms), and R1 / the UI ack timer count from here.
             created_t=max(self.state.t, ev.t), event_t=ev.t, latency_ms=ev.latency.total_ms,
+            latency_after_speech_ms=ev.latency.after_speech_ms,
         )
         self._card_last_t[card.id] = ev.t
         self._place_card(card)
@@ -521,6 +522,14 @@ class World:
                     u.assignment = target_zone or p.text
                     self.emit("unit", u)
         subject = None
+        if p.kind == "RADIO_SILENCE":
+            # the member in distress keeps talking (SOP 109): no silence order restating the mayday to them
+            from server.checker import distressed_unit
+
+            if card is not None and (card.kind == "MAYDAY" or (card.kind == "RULE" and card.rule_id == "R2")):
+                subject = card.unit_id
+            elif p.evidence_event_id:
+                subject = distressed_unit(next((e for e in st.events if e.id == p.evidence_event_id), None), st)
         if p.kind == "RIT_DEPLOY":
             # the member in distress never gets the mayday restated (checker invariant 7); on RIT approval they get
             # a hold-position brief instead
@@ -604,7 +613,26 @@ class World:
                             priority=a.priority, unit_id=a.unit_id, zone_id=a.zone_id, fields=fields,
                             missing_fields=self._missing(fields), created_t=self.state.t)
                 self._place_card(card)
+            elif isinstance(a, rules.Ask):
+                from server.agent import ask_field
+
+                if a.unit_id not in self.state.units or rules.asked(self.state, a.unit_id, a.field):
+                    continue
+                b = ask_field(self, a.unit_id, a.field, a.evidence_event_id, source="rule")
+                wid = self.new_id("rule")
+                self.add_trace(wid, f"rule:R6:{a.unit_id}", "tool_call",
+                               {"tool": "request_missing_field", "args": {"unit_id": a.unit_id, "field": a.field,
+                                                                          "evidence_event_id": a.evidence_event_id},
+                                "call_id": "rule", "source": "rule", "rule_id": "R6"})
+                self.add_trace(wid, f"rule:R6:{a.unit_id}", "delivery",
+                               {"brief_id": b.id, "unit_id": a.unit_id, "decision": "push", "ask": a.field,
+                                "source": "rule", "card_id": a.card_id})
             elif isinstance(a, rules.ProposeOrder):
+                if a.kind in ("RIT_DEPLOY", "RADIO_SILENCE"):
+                    from server.agent import duplicate_proposal
+
+                    if duplicate_proposal(self.state, a.kind, a.evidence_event_id) is not None:
+                        continue
                 self.add_proposal(a.kind, a.units, a.text, a.rationale, evidence_event_id=a.evidence_event_id,
                                   card_id=a.card_id, source="rule")
 

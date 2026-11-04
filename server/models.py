@@ -43,6 +43,28 @@ BriefPriority = Literal["P0", "P1", "P2"]
 BriefSource = Literal["agent", "router", "rule"]
 TraceKind = Literal["reasoning", "tool_call", "checker", "delivery", "fallback", "wake"]
 Mode = Literal["LIVE", "REPLAY"]
+# SOP 109 missing-field questions (request_missing_field / R6): the WS "ask" text and the P0 brief text.
+AskField = Literal["who", "what", "where", "needs", "air"]
+ASK_FIELD_KO: dict[str, str] = {
+    "who": "소속과 이름을 말하십시오", "what": "상황(원인)을 말하십시오", "where": "현재 위치, 지나온 위치를 말하십시오",
+    "needs": "필요한 것이 무엇입니까? 사다리, 공기용기 등", "air": "공기잔량을 보고하십시오",
+}
+ASK_FIELD_EN: dict[str, str] = {
+    "who": "State your unit and name", "what": "State your situation (cause)",
+    "where": "State your location and where you came from", "needs": "What do you need? Ladder, air cylinder, etc.",
+    "air": "Report your air remaining",
+}
+# UI label of the field asked (crew phone "IC ASKS · <label>")
+ASK_FIELD_LABEL_KO: dict[str, str] = {"who": "소속·이름", "what": "상황", "where": "위치", "needs": "필요한 것", "air": "공기잔량"}
+
+
+ASK_REASON = "SOP 109 missing field: "   # Brief.reason prefix of every ask (agent + R6): "... needs"
+
+
+def ask_text(field: str, lang: str = "ko") -> str:
+    return (ASK_FIELD_KO if lang == "ko" else ASK_FIELD_EN).get(field, field)
+
+
 CrewButton = Literal["EVACUATE", "VICTIM_HERE", "SEARCH_DONE", "NEED_HELP"]
 CREW_BUTTON_KO: dict[str, str] = {
     "EVACUATE": "긴급탈출", "VICTIM_HERE": "구조대상자 여기", "SEARCH_DONE": "검색완료", "NEED_HELP": "지원요청",
@@ -191,6 +213,7 @@ class Transmission(BaseModel):
     line_id: str | None = None        # scenario line (L01..) when replayed
     t_keyup: float
     t_final: float | None = None
+    t_end: float | None = None        # end of transmission (scenario s): key-up + clip duration (replay/ptt), speech end (live)
     text_partial: str = ""
     text_final: str | None = None
     audio_url: str | None = None      # "/samples/radio/L08.wav"
@@ -201,7 +224,16 @@ class Transmission(BaseModel):
 class Latency(BaseModel):
     asr_ms: int = 0        # key-up (or end of speech) → final transcript
     triage_ms: int = 0     # final → Triage
-    total_ms: int = 0      # key-up → Event
+    total_ms: int = 0      # key-up → Event (includes the clip's own duration)
+    after_speech_ms: int = 0   # end of transmission (Transmission.t_end) → Event, ≥ 0: the primary badge number
+
+
+def after_speech_ms(total_ms: int, t_keyup: float, t_end: float | None) -> int:
+    """Event latency after the end of transmission: total_ms (wall, key-up → Event) minus the clip's own duration
+    (clips play at 1× even when the scenario compresses silence, so t_end − t_keyup is wall-exact). ≥ 0."""
+    if t_end is None:
+        return max(0, int(total_ms))
+    return max(0, int(total_ms) - int(round((t_end - t_keyup) * 1000)))
 
 
 class Event(BaseModel):
@@ -238,7 +270,8 @@ class Card(BaseModel):
     acked_t: float | None = None
     resolved_t: float | None = None
     escalation_level: int = 0                  # 0 none, 1 at 10 s, 2 at 20 s after created_t (R1)
-    latency_ms: int = 0                        # key-up → card
+    latency_ms: int = 0                        # key-up → card (total_ms, includes clip duration)
+    latency_after_speech_ms: int = 0           # end of transmission → card (Latency.after_speech_ms)
     note: str | None = None                    # resolution note, e.g. "found OK (L13)"
 
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ackCard, resolveCard } from "@/lib/api"
-import { fmtClock, fmtLatency, R1_KEYS, R1L2_KEYS, tagBorder, tagColor, tagLabel, threshold } from "@/lib/format"
+import { fmtClock, fmtLatency, MAYDAY_ORDERS, R1_KEYS, R1L2_KEYS, tagBorder, tagColor, tagLabel, threshold } from "@/lib/format"
 import { applyLocal, useEarshot } from "@/lib/ws"
 import type { Card, Proposal, State } from "@/lib/types"
 import { ProposalItem } from "./ProposalItem"
@@ -34,7 +34,7 @@ if (typeof document !== "undefined") {
   document.addEventListener("pointerdown", unlock, { once: true, capture: true })
   document.addEventListener("keydown", unlock, { once: true, capture: true })
 }
-export function beep(level: number) {
+function beep(level: number) {
   try {
     ctx ??= new AudioContext()
     if (ctx.state === "suspended") void ctx.resume()
@@ -65,6 +65,26 @@ async function act(p: Promise<Card>, label: string) {
   }
 }
 
+/** Card latency split into "after end of transmission" (primary) and "after key-up" (includes the clip itself). */
+function cardLatency(card: Card, state: State) {
+  const total = card.latency_ms
+  const ev0 = state.events.find((e) => e.id === card.event_ids[0])
+  const tx = ev0 ? state.transmissions.find((t) => t.id === ev0.transmission_id) : undefined
+  const clipS = tx?.t_end != null && Number.isFinite(tx.t_end) ? Math.max(0, tx.t_end - tx.t_keyup) : null
+  let after: number | null = null
+  let exact = true
+  let clip = clipS
+  if (card.latency_after_speech_ms != null && Number.isFinite(card.latency_after_speech_ms)) {
+    after = card.latency_after_speech_ms
+    if (clip == null && Number.isFinite(total)) clip = Math.max(0, (total - after) / 1000)
+  }  else if (clipS != null && Number.isFinite(total)) after = Math.max(0, total - clipS * 1000)
+  else {
+    after = total
+    exact = false
+  }
+  return { after, total, clipS: clip, exact }
+}
+
 export function CardItem({ card, state, proposals }: { card: Card; state: State; proposals: Proposal[] }) {
   const kindKey = card.kind
   const isMaydayLike = card.kind === "MAYDAY" || (card.kind === "RULE" && card.priority === 0)
@@ -85,6 +105,7 @@ export function CardItem({ card, state, proposals }: { card: Card; state: State;
   const age = Math.max(0, state.t - card.created_t)
   const pct = Math.min(100, (age / r1l2) * 100)
 
+  const lat = cardLatency(card, state)
   const ev = state.events.find((e) => e.id === card.event_ids[card.event_ids.length - 1])
   const fields = FIELD_ORDER[kindKey] ?? Object.keys(card.fields)
   const keys = Array.from(new Set([...fields, ...Object.keys(card.fields)]))
@@ -106,8 +127,18 @@ export function CardItem({ card, state, proposals }: { card: Card; state: State;
         {lvl > 0 && live && (
           <span className="rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">ESC L{lvl}</span>
         )}
-        <span className="ml-auto rounded bg-zinc-800 px-2 py-0.5 font-mono text-sm text-emerald-300" title="measured key-up → card">
-          {fmtLatency(card.latency_ms)} after key-up
+        <span
+          className="ml-auto flex flex-col items-end rounded bg-zinc-800 px-2 py-0.5 font-mono leading-tight"
+          title="measured: end of transmission → card (primary) · key-up → card (includes the clip itself)"
+        >
+          <span className="text-sm font-bold text-emerald-300">
+            {fmtLatency(lat.after)} {lat.exact ? "after end of transmission" : "after key-up"}
+          </span>
+          {lat.exact && (
+            <span className="text-[11px] text-zinc-400">
+              {fmtLatency(lat.total)} after key-up{lat.clipS != null ? ` · clip ${lat.clipS.toFixed(1)} s` : ""}
+            </span>
+          )}
         </span>
       </div>
       <h3 className="mt-1.5 text-xl font-bold leading-tight text-white">{card.title}</h3>
@@ -194,9 +225,11 @@ export function CardItem({ card, state, proposals }: { card: Card; state: State;
 
       {proposals.length > 0 && (
         <div className="mt-2 space-y-2">
-          {proposals.map((p) => (
-            <ProposalItem key={p.id} p={p} state={state} />
-          ))}
+          {[...proposals]
+            .sort((a, b) => Number(MAYDAY_ORDERS.has(b.kind)) - Number(MAYDAY_ORDERS.has(a.kind)) || a.created_t - b.created_t)
+            .map((p) => (
+              <ProposalItem key={p.id} p={p} state={state} prominent={isMaydayLike && MAYDAY_ORDERS.has(p.kind)} />
+            ))}
         </div>
       )}
     </article>

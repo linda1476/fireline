@@ -21,14 +21,18 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-from server import checker, router_fallback
+from server import checker, router_fallback, rules
 from server.config import Settings, get_settings
-from server.models import Brief, Card, Event, Proposal, State, TraceEntry, Triage, Unit
+from server.models import (ASK_FIELD_EN, ASK_FIELD_KO, ASK_REASON, Brief, Card, Event, Proposal, State, TraceEntry, Triage,
+                           Unit, ask_text)
 
 MAX_ROUNDS = 3
-# round 1 is kept cheap (small snapshot, short budget); later rounds 4000. Env override for measurement only.
-ROUND1_MAX_OUTPUT_TOKENS = int(os.environ.get("EARSHOT_AGENT_ROUND1_TOKENS", "1500"))
+# round 1 is kept cheap (small snapshot, reasoning "minimal") but NOT token-capped: a cap never makes a short answer
+# faster, it only truncates (live run 2026-11-04: 1500 → status "incomplete", five empty-arg calls). Env override for
+# measurement only.
+ROUND1_MAX_OUTPUT_TOKENS = int(os.environ.get("EARSHOT_AGENT_ROUND1_TOKENS", "4000"))
 LATER_MAX_OUTPUT_TOKENS = 4000
+RETRY_MAX_OUTPUT_TOKENS = 4000
 LATE_WAKE_CAP_S = 45.0            # a wake that missed agent_timeout_s may keep running in the background this long
 CREW_ROLES = ("CREW", "RIT", "EXTERIOR")
 log = logging.getLogger("earshot.agent")
@@ -63,17 +67,14 @@ TOOLS: list[dict[str, Any]] = [
 SYSTEM_PROMPT = """You are Earshot's relevance agent on a Korean fireground radio net. Principle: autonomy over information, not over orders.
 - You decide WHO hears WHAT. You never send orders to crews: only short information briefs. Any order (radio silence, RIT deploy, withdraw, strategy, assignment) becomes propose_order for the Incident Commander to approve.
 - Crew attention is scarce. Push P1/P2 briefs ONLY to units in, entering or assigned to the affected sector (the event zone, its parent/child zones, or the zone directly above/below it). For every other interior crew unit call hold with a reason like "not your sector (zone X)".
-- MAYDAY (긴급탈출) = crew safety: P0 brief to all OTHER interior units, escalate_to_ic, and use request_missing_field for missing SOP 109 fields (who/what/where/needs/air) from the unit in distress. Never brief the unit in distress (event.distressed_unit) about its own mayday.
+- MAYDAY (긴급탈출) = crew safety. On a MAYDAY wake, in this order and in ONE turn: (1) request_missing_field to the unit in distress (event.distressed_unit) once for EACH field listed in the MAYDAY card's missing_fields; (2) propose_order RIT_DEPLOY (units: the RIT unit) to the distressed unit's zone via the nearest outdoor access (event.rit_access), e.g. "신속동료구조팀 <event.zone_label> 투입 (<access>)", and propose_order RADIO_SILENCE (units: all crew/RIT/exterior units except the distressed unit) "전 출동대 무선 침묵, 긴급탈출 관련 교신만"; (3) P0 send_brief to all OTHER interior units (facts only: do not mention a proposed order such as radio silence before the IC approves it); (4) escalate_to_ic. Never brief the unit in distress about its own mayday.
+- HELP_NEEDED that fills a MAYDAY's needs: propose_order RIT_DEPLOY if none is pending yet (a duplicate proposal is a no-op).
+- escalate_to_ic only for crew-safety cards (MAYDAY, HELP_NEEDED, RULE). Never escalate DANGER or VICTIM_FOUND cards; hazards that change strategy become propose_order CONFIRM_STRATEGY.
 - Brief text: at most 2 sentences and 140 characters, in language "{lang}" (ko = Korean, keep terms 긴급탈출/구조대상자/우선탐색/인화물질). State the fact and where; an exit/safety reminder is fine, commands are not.
 - Every call cites the triggering event id (evidence_event_id or event_id). Use only unit ids from the snapshot.
 - Call all needed tools in one turn when you can. If a call is rejected, fix it and call again."""
 
-FIELD_Q = {
-    "ko": {"who": "소속과 성명 알려주세요.", "what": "현재 상황 알려주세요.", "where": "현재 위치 알려주세요.",
-           "needs": "필요한 지원 알려주세요.", "air": "공기잔량 알려주세요."},
-    "en": {"who": "Say your unit and name.", "what": "Say your situation.", "where": "Say your location.",
-           "needs": "Say what you need.", "air": "Say your air remaining."},
-}
+FIELD_Q = {"ko": ASK_FIELD_KO, "en": ASK_FIELD_EN}  # SOP 109 questions (models)
 
 
 class WorldLike(Protocol):
@@ -109,11 +110,15 @@ def _event_view(event: Event, state: State) -> dict[str, Any]:
     return {"id": event.id, "t": event.t, "channel": event.channel, "text": event.text,
             "tag": event.triage.tag, "speaker_unit": event.speaker_unit_snapped,
             "distressed_unit": checker.distressed_unit(event, state),
-            "zone_id": event.zone_id_snapped, "hazard_terms": event.triage.hazard_terms,
+            "zone_id": event.zone_id_snapped,
+            **({"zone_label": (zl.label_ko if state.lang == "ko" else zl.label_en)}
+               if (zl := checker.zones_of(state).get(event.zone_id_snapped or "")) else {}),
+            "hazard_terms": event.triage.hazard_terms,
             "distress": event.triage.distress.model_dump() if event.triage.distress else None,
             "victims": event.triage.victims.model_dump() if event.triage.victims else None,
             "crew_brief": event.triage.crew_brief, "evidence_span": event.triage.evidence_span,
-            "related_zones": sorted(checker.related_zones(event.zone_id_snapped, state))}
+            "related_zones": sorted(checker.related_zones(event.zone_id_snapped, state)),
+            **({"rit_access": acc} if (acc := rules.rit_access(event.zone_id_snapped, state)) else {})}
 
 
 def snapshot(state: State, event: Event | None) -> dict[str, Any]:
@@ -307,6 +312,7 @@ class RelevanceAgent:
         rnd = 0
         budget = ROUND1_MAX_OUTPUT_TOKENS
         pending_rejections: list[str] = []
+        retried_round = False
         while rnd < MAX_ROUNDS:
             rnd += 1
             self._trace("wake", {"snapshot_size": len(user), "round": rnd, "max_output_tokens": budget,
@@ -340,12 +346,22 @@ class RelevanceAgent:
                     if m:
                         messages.append(m)
             status = getattr(resp, "status", None)
-            if not calls and status == "incomplete" and budget < LATER_MAX_OUTPUT_TOKENS:
-                # the short round-1 budget ran out inside reasoning: re-issue the same round with the full budget
-                self._trace("wake", {"round": rnd, "rtt_ms": rtt, "status": status, "retry_budget": LATER_MAX_OUTPUT_TOKENS}, ctx)
-                budget = LATER_MAX_OUTPUT_TOKENS
-                rnd -= 1
-                continue
+            empty = [c for c in calls if not _has_args(c)]
+            truncated = status == "incomplete" or bool(empty)
+            if truncated:
+                # a truncated response's function_call items carry empty / cut JSON arguments: never apply them (the
+                # checker would reject each as "unknown unit_id None" and burn the wake). Discard ALL calls of this
+                # response and re-issue the same round once, with the retry budget, without chaining it.
+                self._trace("reasoning", {"note": f"truncated, retrying with {RETRY_MAX_OUTPUT_TOKENS}", "round": rnd,
+                                          "status": status, "rtt_ms": rtt, "discarded_calls": len(calls),
+                                          "empty_args": len(empty), "from": "agent"}, ctx)
+                if not retried_round:
+                    retried_round = True
+                    budget = RETRY_MAX_OUTPUT_TOKENS
+                    rnd -= 1
+                    continue
+                calls = [c for c in calls if _has_args(c)]  # still truncated on the retry: keep only well-formed calls
+            retried_round = False
             prev_id = resp.id
             budget = LATER_MAX_OUTPUT_TOKENS
             for s in summaries:
@@ -435,13 +451,14 @@ class RelevanceAgent:
             self._trace("delivery", {"brief_id": b.id, "unit_id": a["unit_id"], "decision": b.decision}, ctx)
             return {"ok": True, "brief_id": b.id}
         if tool == "request_missing_field":
-            lang = st.lang if st.lang in FIELD_Q else "en"
             u = st.units[a["unit_id"]]
-            text = f"{u.callsign}, {FIELD_Q[lang][a['field']]}"
-            self.world.broadcast("ask", {"unit_id": u.id, "field": a["field"], "text": text})
-            b = self.world.add_brief(unit_id=u.id, decision="push", text=text, priority="P0",
-                                     reason=f"SOP 109 missing field: {a['field']}",
-                                     evidence_event_id=a.get("evidence_event_id"), source="agent")
+            prev = asked_brief(st, u.id, a["field"])
+            if prev is not None:  # already asked (by R6 or an earlier call): no second P0 interrupt
+                ctx.decided.add(u.id)
+                self._trace("delivery", {"unit_id": u.id, "decision": "duplicate", "brief_id": prev.id,
+                                         "ask": a["field"]}, ctx)
+                return {"ok": True, "deduped": True, "brief_id": prev.id}
+            b = ask_field(self.world, u.id, a["field"], a.get("evidence_event_id"), source="agent")
             ctx.decided.add(u.id)
             self._trace("delivery", {"brief_id": b.id, "unit_id": u.id, "decision": "push", "ask": a["field"]}, ctx)
             return {"ok": True, "brief_id": b.id}
@@ -455,8 +472,7 @@ class RelevanceAgent:
             return {"ok": True, "card_id": card.id, "level": level}
         if tool == "propose_order":
             card = card_for_event(st, a["evidence_event_id"])
-            dup = next((p for p in st.proposals if p.kind == a["kind"] and p.state in ("pending", "edited")
-                        and p.evidence_event_id == a["evidence_event_id"]), None)
+            dup = duplicate_proposal(st, a["kind"], a["evidence_event_id"])
             if dup is not None:
                 return {"ok": True, "deduped": True, "proposal_id": dup.id, "state": dup.state}
             p = self.world.add_proposal(kind=a["kind"], units=list(a.get("units") or []), text=a["text"],
@@ -465,6 +481,35 @@ class RelevanceAgent:
             self._trace("delivery", {"proposal_id": p.id, "decision": "proposal", "kind": a["kind"]}, ctx)
             return {"ok": True, "proposal_id": p.id, "state": p.state}
         return {"ok": False, "error": f"unknown tool {tool}"}
+
+
+# one standing order of these kinds per incident (a second RIT_DEPLOY / RADIO_SILENCE while one is pending or
+# approved is a no-op); other kinds dedupe per evidence event
+GLOBAL_PROPOSAL_KINDS = ("RIT_DEPLOY", "RADIO_SILENCE", "WITHDRAW")
+
+
+def asked_brief(st: State, unit_id: str, fld: str) -> Brief | None:
+    """The ask brief already sent to this unit for this SOP 109 field (agent or rule R6)."""
+    return next((b for b in st.briefs if b.unit_id == unit_id and b.reason.startswith(ASK_REASON + fld)), None)
+
+
+def duplicate_proposal(st: State, kind: str, evidence_event_id: str | None) -> Proposal | None:
+    for p in st.proposals:
+        if p.kind != kind or p.state not in ("pending", "edited", "approved"):
+            continue
+        if kind in GLOBAL_PROPOSAL_KINDS or p.evidence_event_id == evidence_event_id:
+            return p
+    return None
+
+
+def ask_field(world: Any, unit_id: str, fld: str, evidence_event_id: str | None, source: str = "agent") -> Brief:
+    """request_missing_field effect (agent tool and rule R6): WS "ask" {unit_id, field, text} + a P0 brief whose
+    text IS the SOP 109 question (models.ASK_FIELD_KO)."""
+    st = world.state
+    text = ask_text(fld, st.lang)
+    world.broadcast("ask", {"unit_id": unit_id, "field": fld, "text": text})
+    return world.add_brief(unit_id=unit_id, decision="push", text=text, priority="P0", reason=ASK_REASON + fld,
+                           evidence_event_id=evidence_event_id, source=source)
 
 
 def duplicate_brief(st: State, tool: str, a: dict[str, Any]) -> Brief | None:
@@ -489,6 +534,12 @@ def _message_text(item: Any) -> str:
         if txt:
             parts.append(txt)
     return " ".join(parts).strip()
+
+
+def _has_args(call: Any) -> bool:
+    """A function_call with a non-empty JSON object as arguments (every tool has required args)."""
+    a = _parse_args(getattr(call, "arguments", None))
+    return isinstance(a, dict) and bool(a)
 
 
 def _parse_args(raw: Any) -> Any:

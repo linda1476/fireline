@@ -26,7 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from server import cache as cache_mod
 from server.cache import RunRecorder, RunReplayer
 from server.config import ROOT, get_settings
-from server.models import CREW_BUTTON_KO, Event, Latency, State, Transmission, Triage, WsMessage
+from server.models import CREW_BUTTON_KO, Event, Latency, State, Transmission, Triage, WsMessage, after_speech_ms
 from server.world import World
 from server import rules
 
@@ -207,7 +207,7 @@ def _apply_and_wake(ev: Event, reason: str) -> list:
 
 
 async def process_final(tx: Transmission, keyup_wall: float | None = None, asr_ms: int | None = None,
-                        source: str | None = None) -> Event | None:
+                        source: str | None = None, speech_end_wall: float | None = None) -> Event | None:
     """text_final → gate → triage → verify/snap → Event → world.apply_event → agent ‖ router."""
     w = RT.world
     w.upsert_transmission(tx)
@@ -239,7 +239,9 @@ async def process_final(tx: Transmission, keyup_wall: float | None = None, asr_m
     ev = Event(
         id=w.new_id("evt"), transmission_id=tx.id, t=float(tx.t_keyup), channel=tx.channel, text=text, triage=tr,
         speaker_unit_snapped=unit_id or tx.unit_id, zone_id_snapped=zone_id,
-        latency=Latency(asr_ms=int(asr_ms or 0), triage_ms=int(triage_ms), total_ms=total),
+        latency=Latency(asr_ms=int(asr_ms or 0), triage_ms=int(triage_ms), total_ms=total,
+                        after_speech_ms=(max(0, int((time.perf_counter() - speech_end_wall) * 1000)) if speech_end_wall
+                                         else after_speech_ms(total, tx.t_keyup, tx.t_end))),
         evidence_verified=verified, source=source or tx.source,
     )
     _apply_and_wake(ev, f"event:{ev.id}")
@@ -297,7 +299,7 @@ async def ptt_clip(unit_id: str, clip_id: str, tx: Transmission) -> None:
     tx.t_final = RT.now_t()
     asr_ms = int((state.get("final_ts", time.perf_counter()) - end_ts) * 1000)
     if tx.text_final:
-        await process_final(tx, keyup_wall=keyup, asr_ms=asr_ms, source="ptt")
+        await process_final(tx, keyup_wall=keyup, asr_ms=asr_ms, source="ptt", speech_end_wall=end_ts)
     else:
         w.upsert_transmission(tx)
 
@@ -305,7 +307,15 @@ async def ptt_clip(unit_id: str, clip_id: str, tx: Transmission) -> None:
 def start_ptt(unit_id: str, clip_id: str) -> Transmission:
     w = RT.world
     t = RT.now_t()
-    tx = Transmission(id=w.new_id("tx"), channel="PTT", unit_id=unit_id, line_id=clip_id, t_keyup=t,
+    wav = S.audio_dir / RT.audio / f"{clip_id}.wav"
+    t_end = None
+    try:
+        from server.scenario import wav_duration
+
+        t_end = round(t + wav_duration(wav), 3) if wav.exists() else None
+    except Exception:
+        pass
+    tx = Transmission(id=w.new_id("tx"), channel="PTT", unit_id=unit_id, line_id=clip_id, t_keyup=t, t_end=t_end,
                       audio_url=f"/samples/{RT.audio}/{clip_id}.wav", source="ptt", lang=w.state.lang)
     w.upsert_transmission(tx)
     RT.spawn(ptt_clip(unit_id, clip_id, tx))
@@ -614,7 +624,7 @@ async def crew_button(unit_id: str, body: dict[str, Any] = Body(default={})) -> 
         text = triage_mod.button_label(kind, w.state.lang)
     else:
         tr, text = _local_button_triage(unit_id, kind), CREW_BUTTON_KO[kind]
-    tx = Transmission(id=w.new_id("tx"), channel="PTT", unit_id=unit_id, t_keyup=t, t_final=t, text_final=text,
+    tx = Transmission(id=w.new_id("tx"), channel="PTT", unit_id=unit_id, t_keyup=t, t_end=t, t_final=t, text_final=text,
                       source="ptt", lang=w.state.lang)
     w.upsert_transmission(tx)
     ev = Event(id=w.new_id("evt"), transmission_id=tx.id, t=t, channel="PTT", text=text, triage=tr,

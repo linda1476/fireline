@@ -96,3 +96,6 @@ export function unitStatusColor(status: string): string {
       return "bg-zinc-800 text-zinc-200"
   }
 }
+
+/** MAYDAY follow-up orders shown prominently under the MAYDAY card */
+export const MAYDAY_ORDERS = new Set<string>(["RIT_DEPLOY", "RADIO_SILENCE"])

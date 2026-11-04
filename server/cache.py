@@ -186,6 +186,7 @@ class RunReplayer:
             self.running = False
 
     async def start(self) -> None:
+        self.running = True  # true when start() returns, not when the task first runs
         self._task = asyncio.create_task(self.run())
 
     async def stop(self) -> None:

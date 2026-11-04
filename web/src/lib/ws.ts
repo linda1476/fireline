@@ -136,6 +136,7 @@ export function reduce(s: EarshotStore, msg: WsMessage): EarshotStore {
 }
 
 async function refetchState() {
+  if (isSampleMode()) return
   try {
     const res = await fetch("/api/state")
     if (res.ok) {
@@ -148,6 +149,7 @@ async function refetchState() {
 }
 
 function connect() {
+  if (isSampleMode()) return
   const proto = location.protocol === "https:" ? "wss" : "ws"
   ws = new WebSocket(`${proto}://${location.host}/ws`)
   ws.onopen = () => {
@@ -202,6 +204,8 @@ function start() {
       connected: false,
       escalations: esc,
       pings: [{ unit_id: "park", n: 1, t: st.t - 3, ping_id: "ping_0001" }],
+      asks: [{ unit_id: "kim", field: "needs", text: "필요한 것이 무엇입니까? 사다리, 공기용기 등", t: st.t - 2, seq: 1 }],
+      seq: 1,
       lastBriefByUnit: briefsByUnit(st.briefs),
     })
     return

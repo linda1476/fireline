@@ -200,6 +200,9 @@ class ScenarioPlayer:
 
     # ------------------------------------------------------------------ lifecycle
     async def start(self) -> None:
+        # running from the moment start() returns (POST /api/scenario/start answers running:true and every clock
+        # frame carries it), not from when the task first runs; stop() / the end of run() clear it
+        self.running = True
         self._main = asyncio.create_task(self.run())
 
     async def stop(self) -> None:
@@ -294,7 +297,8 @@ class ScenarioPlayer:
         _maybe_call(self.on_audio_cue, {"channel": ch, "line_id": ln["id"], "audio_url": self.audio_url(ln["id"]),
                                         "t": float(ln["t"])})
         tx = Transmission(id=self._next_id(), channel=ch, unit_id=ln.get("unit"), line_id=ln["id"],
-                          t_keyup=float(ln["t"]), audio_url=self.audio_url(ln["id"]), source="replay",
+                          t_keyup=float(ln["t"]), t_end=round(float(ln["t"]) + self._dur[ln["id"]], 3),
+                          audio_url=self.audio_url(ln["id"]), source="replay",
                           lang=self.lang if self.lang in ("ko", "en") else "ko")
         now = self.clock()
         self.keyup_wall[tx.id] = now

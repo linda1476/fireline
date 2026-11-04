@@ -20,12 +20,43 @@ function normaliseLines(raw: unknown): ScenarioLine[] {
   return []
 }
 
+/** SOP 109 field → Korean label (the English field name is never shown on the crew screen) */
+const FIELD_KO: Record<string, string> = { who: "누가", what: "무엇을", where: "어디에", needs: "필요한 것", air: "공기잔량" }
+/** fallback question if the ask payload carries no Korean text */
+const FIELD_Q_KO: Record<string, string> = {
+  who: "누구입니까? 소속과 이름을 말하십시오",
+  what: "무슨 상황입니까? 고립, 부상, 추락 등",
+  where: "어디에 있습니까? 층과 방향을 말하십시오",
+  needs: "필요한 것이 무엇입니까? 사다리, 공기용기 등",
+  air: "공기잔량은 얼마입니까?",
+}
+const STATUS_CHIP: Record<string, string> = {
+  TRAPPED: "bg-red-600 text-white animate-pulse",
+  LOW_AIR: "bg-amber-400 text-black",
+  IN: "bg-emerald-600 text-white",
+  OK: "bg-emerald-600 text-white",
+  OUT: "bg-zinc-600 text-zinc-100",
+  UNKNOWN: "bg-zinc-700 text-zinc-300",
+}
+const STATUS_KO: Record<string, string> = {
+  TRAPPED: "고립", LOW_AIR: "공기부족", IN: "진입", OK: "정상", OUT: "퇴출", UNKNOWN: "미상",
+}
+
 const BUTTONS = [
   { kind: "EVACUATE", label: "긴급탈출", tone: "red" },
   { kind: "VICTIM_HERE", label: "구조대상자 여기", tone: "amber" },
   { kind: "SEARCH_DONE", label: "검색완료", tone: "green" },
   { kind: "NEED_HELP", label: "지원요청", tone: "blue" },
 ] as const
+
+/** The ask's Korean question: the payload text when it is a real field question, else the field's stock question. */
+function askText(field: string, text: string | null | undefined): string {
+  const t = (text ?? "").trim()
+  // a generic "현재 상황 알려주세요" style ask, or English text, does not name the field: use the stock question
+  const hangul = /[가-힣]/.test(t)
+  if (!t || !hangul || /현재 상황/.test(t)) return FIELD_Q_KO[field] ?? (t || "추가 정보를 보고하십시오")
+  return t
+}
 
 /**
  * Crew clip-on display. WS mapping (useEarshot):
@@ -191,8 +222,14 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
             {unit.callsign}
             {unit.name ? ` ${unit.name}` : ""}
           </div>
-          <div className="truncate text-sm text-zinc-400">
-            {zone?.label_ko ?? unit.zone_id ?? "위치 미상"} · {unit.status}
+          <div className="flex min-w-0 items-center gap-1.5 text-sm text-zinc-300">
+            <span className="truncate">{zone?.label_ko ?? unit.zone_id ?? "위치 미상"}</span>
+            <span
+              className={cn("shrink-0 rounded px-1.5 py-0.5 text-xs font-bold", STATUS_CHIP[unit.status] ?? STATUS_CHIP.UNKNOWN)}
+              title={unit.status}
+            >
+              {STATUS_KO[unit.status] ?? unit.status}
+            </span>
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
@@ -235,10 +272,15 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
 
       {/* ask */}
       {pendingAsk && (
-        <div className="rounded-2xl border-2 border-sky-400 bg-sky-950 p-3">
-          <div className="text-xs font-semibold text-sky-300 uppercase">IC asks · {pendingAsk.field}</div>
-          <div className="text-xl font-bold break-keep">{pendingAsk.text}</div>
-          <div className="mt-1 text-xs text-sky-300">hold TALK to answer</div>
+        <div className="rounded-2xl border-2 border-yellow-300 bg-yellow-950/80 p-3 shadow-lg shadow-yellow-900/40 ring-2 ring-yellow-300/40">
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-yellow-300 px-1.5 py-0.5 text-xs font-black text-black">지휘대 질문</span>
+            <span className="text-sm font-bold text-yellow-200">{FIELD_KO[pendingAsk.field] ?? "추가 정보"}</span>
+          </div>
+          <div className="mt-1 text-2xl leading-snug font-bold break-keep text-white">
+            {askText(pendingAsk.field, pendingAsk.text)}
+          </div>
+          <div className="mt-1 text-sm font-semibold text-yellow-200">TALK 길게 눌러 답하십시오</div>
         </div>
       )}
 

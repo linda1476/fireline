@@ -102,6 +102,8 @@ export interface Transmission {
   line_id: string | null
   t_keyup: number
   t_final: number | null
+  /** end of the clip (key-up + clip duration); backend adds it, older runs lack it */
+  t_end?: number | null
   text_partial: string
   text_final: string | null
   audio_url: string | null
@@ -109,7 +111,13 @@ export interface Transmission {
   lang: Lang
 }
 
-export interface Latency { asr_ms: number; triage_ms: number; total_ms: number }
+export interface Latency {
+  asr_ms: number
+  triage_ms: number
+  total_ms: number
+  /** ms after the end of the transmission (total minus the clip's own duration) */
+  after_speech_ms?: number | null
+}
 
 export interface Event {
   id: string
@@ -147,6 +155,8 @@ export interface Card {
   resolved_t: number | null
   escalation_level: number
   latency_ms: number
+  /** ms from end of transmission → card (backend adds it; fallback computed client-side) */
+  latency_after_speech_ms?: number | null
   note: string | null
 }
 
@@ -257,8 +267,11 @@ export type WsMessage =
 
 export interface ScenarioStartBody {
   mode: Mode
-  lang: Lang
-  audio: "radio" | "clean"
+  lang?: Lang
+  audio?: "radio" | "clean"
   run?: string
   scenario?: string
 }
+
+export interface RunInfo { file: string; size: number; t_max: number | null; mtime: number | string | null; best: boolean }
+export interface PromoteResult { promoted: string; best: string; size: number; t_max: number | null }

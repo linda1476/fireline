@@ -182,7 +182,7 @@ def test_late_agent_calls_applied_after_fallback_without_duplicates():
     assert [p.kind for p in s.proposals] == ["CONFIRM_STRATEGY"]  # late, non-duplicate call applied
     assert any(t.payload.get("late") and t.payload.get("decision") == "duplicate" for t in s.trace)
     kw = spark.async_client.responses.calls[0]
-    assert kw["max_output_tokens"] == 1500 and '"role":"IC"' not in kw["input"][1]["content"]
+    assert kw["max_output_tokens"] == 4000 and '"role":"IC"' not in kw["input"][1]["content"]
 
 
 def test_route_rate_limits_recent_non_p0_push():

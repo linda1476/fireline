@@ -32,6 +32,7 @@ MAX_SENTENCES = 2
 TOOLS = {"get_unit_state", "send_brief", "hold", "request_missing_field", "escalate_to_ic", "propose_order", "ping_unit"}
 PROPOSAL_KINDS = {"RADIO_SILENCE", "RIT_DEPLOY", "WITHDRAW", "CONFIRM_STRATEGY", "ASSIGN"}
 MISSING_FIELDS = {"who", "what", "where", "needs", "air"}
+ESCALATE_KINDS = ("MAYDAY", "HELP_NEEDED", "RULE")
 
 
 
@@ -255,6 +256,12 @@ def check(
     # hold, escalate_to_ic
     if not isinstance(args.get("reason"), str) or not args["reason"].strip():
         return False, "reason must be a non-empty string"
+    if tool == "escalate_to_ic":
+        card = next((c for c in st.cards if event.id in c.event_ids), None)
+        # escalation is reserved for crew-safety cards; a card already escalated (by R1/R5) may be re-escalated
+        if card is not None and card.kind not in ESCALATE_KINDS and card.escalation_level < 1:
+            return False, (f"{card.id} is {card.kind}: not a crew-safety card; escalate_to_ic is only for "
+                           f"{'/'.join(ESCALATE_KINDS)} cards")
     return True, None
 
 

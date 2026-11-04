@@ -1,7 +1,12 @@
 // Fetch wrappers for every REST route in docs/CONTRACT.md.
-import type { Brief, Card, CrewButton, Event, Proposal, ScenarioStartBody, State, Transmission, Unit } from "./types"
+import type {
+  Brief, Card, CrewButton, Event, PromoteResult, Proposal, RunInfo, ScenarioStartBody, State, Transmission, Unit,
+} from "./types"
+import { isSampleMode } from "./ws"
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
+  // ?sample=1: no backend calls at all (no 502 spam in the console)
+  if (isSampleMode()) throw new Error("sample mode: backend disabled")
   const res = await fetch(path, {
     method,
     headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
@@ -19,8 +24,11 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
   return (await res.json()) as T
 }
 
-export const startScenario = (b: ScenarioStartBody) =>
-  req<State>("POST", "/api/scenario/start", { scenario: "hanbit", ...b })
+/** The body is sent exactly as given (the Launcher builds it and shows it before sending). */
+export const startScenario = (b: ScenarioStartBody) => req<State>("POST", "/api/scenario/start", b)
+export const listRuns = () => req<RunInfo[]>("GET", "/api/runs")
+export const promoteRun = (file: string) =>
+  req<PromoteResult>("POST", `/api/runs/${encodeURIComponent(file)}/promote`, {})
 export const stopScenario = () => req<State>("POST", "/api/scenario/stop", {})
 export const resetScenario = () => req<State>("POST", "/api/scenario/reset", {})
 export const getState = () => req<State>("GET", "/api/state")

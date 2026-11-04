@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from server.config import Settings, get_settings
-from server.models import Event, State, assignment_zone
+from server.models import ASK_REASON, Event, State, assignment_zone
 
 OPEN_STATES = ("open", "escalated")
 
@@ -55,7 +55,17 @@ class ProposeOrder:
     evidence_event_id: str | None = None
 
 
-Action = Escalate | Ping | RuleCard | ProposeOrder
+@dataclass
+class Ask:
+    """R6: request_missing_field done by the rule (WS "ask" + P0 brief with the SOP 109 question)."""
+    unit_id: str
+    field: str
+    card_id: str
+    evidence_event_id: str | None = None
+    rule_id: str = "R6"
+
+
+Action = Escalate | Ping | RuleCard | ProposeOrder | Ask
 
 
 # ----------------------------------------------------------------------------- helpers
@@ -201,17 +211,96 @@ def r5(state: State, t: float, th: Settings) -> list[Action]:
     return out
 
 
+R6_FIELDS = ("who", "what", "where", "needs")   # SOP 109 required fields; air is listed but optional (CONTRACT)
+RADIO_SILENCE_TEXT = {"ko": "전 출동대 무선 침묵, 긴급탈출 관련 교신만", "en": "All units radio silence, mayday traffic only"}
+# nearest outdoor access per indoor wing (scenario building): 2F-E* → east windows, 1F-W → front entrance
+_ACCESS = (("2F-E", "OUT-EAST"), ("1F-W", "OUT-FRONT"))
+
+
+def asked(state: State, unit_id: str, fld: str) -> bool:
+    """An ask for this SOP 109 field already went to this unit (agent request_missing_field or R6)."""
+    return any(b.unit_id == unit_id and b.reason.startswith(ASK_REASON + fld) for b in state.briefs)
+
+
+def rit_access(zone_id: str | None, state: State) -> str | None:
+    """Label of the nearest outdoor access for a RIT entering zone_id (None if unknown)."""
+    if not zone_id:
+        return None
+    for prefix, out in _ACCESS:
+        if zone_id == prefix or zone_id.startswith(prefix + "-"):
+            z = state.zones.get(out)
+            if z is not None:
+                return z.label_ko if state.lang == "ko" else z.label_en
+    return None
+
+
+def _live_proposal(state: State, kind: str, card_id: str | None) -> bool:
+    """A proposal of this kind that still stands (pending/edited/approved), or one the IC rejected for this card."""
+    return any(p.kind == kind and (p.state != "rejected" or p.card_id == card_id) for p in state.proposals)
+
+
+def r6(state: State, t: float, th: Settings) -> list[Action]:
+    """MAYDAY card with missing SOP 109 fields and no ask sent within r6_ask_s of card creation → ask the distressed
+    unit (safety net for an agent wake that timed out / skipped the ask)."""
+    out: list[Action] = []
+    for c in state.cards:
+        if c.kind != "MAYDAY" or c.state == "resolved" or not c.unit_id or c.unit_id not in state.units:
+            continue
+        if t - c.created_t < th.r6_ask_s:
+            continue
+        for f in R6_FIELDS:
+            if f in c.missing_fields and not asked(state, c.unit_id, f):
+                out.append(Ask(c.unit_id, f, c.id, c.event_ids[0] if c.event_ids else None))
+    return out
+
+
+def r7(state: State, t: float, th: Settings) -> list[Action]:
+    """MAYDAY card whose where is known and no RIT_DEPLOY proposal within r7_rit_s → Proposal RIT_DEPLOY ([rit],
+    nearest outdoor access) and, if none yet, RADIO_SILENCE (all units but the member in distress)."""
+    out: list[Action] = []
+    for c in state.cards:
+        if c.kind != "MAYDAY" or c.state == "resolved" or not c.fields.get("where"):
+            continue
+        if t - c.created_t < th.r7_rit_s:
+            continue
+        ev_id = c.event_ids[0] if c.event_ids else None
+        ko = state.lang == "ko"
+        if not _live_proposal(state, "RIT_DEPLOY", c.id):
+            rit = [u.id for u in state.units.values() if u.role == "RIT"]
+            z = state.zones.get(c.zone_id) if c.zone_id else None
+            label = (z.label_ko if ko else z.label_en) if z else c.fields.get("where")
+            access = rit_access(c.zone_id, state)
+            if ko:
+                text = f"신속동료구조팀 {label} 투입" + (f" ({access})" if access else "")
+            else:
+                text = f"RIT deploy to {label}" + (f" via {access}" if access else "")
+            out.append(ProposeOrder(
+                kind="RIT_DEPLOY", units=rit, text=text,
+                rationale=f"R7: MAYDAY {c.fields.get('who') or c.unit_id} at {c.fields.get('where')}, "
+                          f"no RIT_DEPLOY proposed after {int(th.r7_rit_s)} s",
+                rule_id="R7", card_id=c.id, evidence_event_id=ev_id))
+        if not _live_proposal(state, "RADIO_SILENCE", c.id):
+            units = [u.id for u in state.units.values() if u.role in ("CREW", "RIT", "EXTERIOR") and u.id != c.unit_id]
+            out.append(ProposeOrder(
+                kind="RADIO_SILENCE", units=units, text=RADIO_SILENCE_TEXT["ko" if ko else "en"],
+                rationale="R7: MAYDAY in progress (SOP 109): clear the channel for the member in distress",
+                rule_id="R7", card_id=c.id, evidence_event_id=ev_id))
+    return out
+
+
 def evaluate(state: State, t: float, thresholds: Settings | None = None) -> list[Action]:
     th = thresholds or get_settings()
     actions: list[Action] = []
     actions += r1(state, t, th)
     actions += r2(state, t, th)
     actions += r4(state, t, th)
+    actions += r6(state, t, th)
+    actions += r7(state, t, th)
     # R5 must not re-escalate a card R1 already escalates in this tick
     seen = {a.card_id for a in actions if isinstance(a, Escalate)}
     actions += [a for a in r5(state, t, th) if a.card_id not in seen]
     return actions
 
 
-__all__ = ["Escalate", "Ping", "RuleCard", "ProposeOrder", "Action", "evaluate", "r3_on_event",
+__all__ = ["Escalate", "Ping", "RuleCard", "ProposeOrder", "Ask", "Action", "evaluate", "r3_on_event", "rit_access",
            "R2_TITLE_KO", "R2_TITLE_EN", "field"]

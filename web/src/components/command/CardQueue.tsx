@@ -1,5 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { State } from "@/lib/types"
+import { MAYDAY_ORDERS } from "@/lib/format"
 import { CardItem } from "./CardItem"
 import { ProposalItem } from "./ProposalItem"
 
@@ -13,7 +14,15 @@ export function CardQueue({ state }: { state: State }) {
   const queued = Math.max(live.length - shown.length, state.counters.cards_queued ?? 0)
   const shownIds = new Set(shown.map((c) => c.id))
   const pending = state.proposals.filter((p) => p.state === "pending" || p.state === "edited")
-  const orphan = pending.filter((p) => !p.card_id || !shownIds.has(p.card_id))
+  // pending RIT_DEPLOY / RADIO_SILENCE not tied to a shown card ride under the top MAYDAY card
+  const topMayday = shown.find((c) => c.kind === "MAYDAY" || (c.kind === "RULE" && c.priority === 0))
+  const unattached = (p: (typeof pending)[number]) => !p.card_id || !shownIds.has(p.card_id)
+  const lifted = new Set(
+    topMayday ? pending.filter((p) => unattached(p) && MAYDAY_ORDERS.has(p.kind)).map((p) => p.id) : [],
+  )
+  const orphan = pending.filter((p) => unattached(p) && !lifted.has(p.id))
+  const propsFor = (cardId: string) =>
+    pending.filter((p) => p.card_id === cardId || (cardId === topMayday?.id && lifted.has(p.id)))
   const acked = state.cards.filter((c) => c.state === "acked").length
 
   return (
@@ -29,7 +38,7 @@ export function CardQueue({ state }: { state: State }) {
         <div className="space-y-3 p-3">
           {shown.length === 0 && <p className="py-10 text-center text-lg text-zinc-500">No open cards</p>}
           {shown.map((c) => (
-            <CardItem key={c.id} card={c} state={state} proposals={pending.filter((p) => p.card_id === c.id)} />
+            <CardItem key={c.id} card={c} state={state} proposals={propsFor(c.id)} />
           ))}
           {orphan.length > 0 && (
             <div className="space-y-2">

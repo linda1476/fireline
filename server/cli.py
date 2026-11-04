@@ -1,4 +1,4 @@
-﻿"""Dev CLI.
+"""Dev CLI.
 
   uv run python -m server.cli triage "<text>" [--lang ko] [--channel TAC]
   uv run python -m server.cli replay --audio clean|radio --asr realtime|file --lang ko [--speed 4] [--max-t 70]
@@ -17,7 +17,7 @@ import logging  # noqa: E402
 import time  # noqa: E402
 
 from server.gate import should_triage  # noqa: E402
-from server.models import Event, Latency, Transmission  # noqa: E402
+from server.models import Event, Latency, Transmission, after_speech_ms  # noqa: E402
 from server.triage import triage  # noqa: E402
 from server.verify import snap_event  # noqa: E402
 
@@ -34,10 +34,11 @@ async def pipeline(tx: Transmission, lang: str, ev_n: list[int], keyup_wall: flo
     total = int((time.perf_counter() - keyup_wall) * 1000) if keyup_wall else 0
     ev = Event(id=f"evt_{ev_n[0]:04d}", transmission_id=tx.id, t=tx.t_keyup, channel=tx.channel, text=text,
                triage=tri, speaker_unit_snapped=unit, zone_id_snapped=zone,
-               latency=Latency(asr_ms=asr_ms, triage_ms=tri_ms, total_ms=total), evidence_verified=ok,
+               latency=Latency(asr_ms=asr_ms, triage_ms=tri_ms, total_ms=total,
+                               after_speech_ms=after_speech_ms(total, tx.t_keyup, tx.t_end)), evidence_verified=ok,
                source=tx.source)
     print(f"t={ev.t:6.1f} {ev.channel:3} {tx.line_id or '-':4} {tri.tag:12} unit={unit} zone={zone} "
-          f"floor={tri.location.floor} asr_ms={asr_ms} triage_ms={tri_ms} evidence_verified={ok} | {text}",
+          f"floor={tri.location.floor} asr_ms={asr_ms} triage_ms={tri_ms} after_speech_ms={ev.latency.after_speech_ms} evidence_verified={ok} | {text}",
           flush=True)
     return ev
 

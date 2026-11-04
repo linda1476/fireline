@@ -49,6 +49,8 @@ class Settings:
     r2_pings: int = 3
     r4_assign_s: float = 30.0
     r5_exit_s: float = 60.0
+    r6_ask_s: float = 6.0        # MAYDAY card missing SOP 109 fields, no ask sent -> rule asks (R6)
+    r7_rit_s: float = 15.0       # MAYDAY card with known where, no RIT_DEPLOY proposal -> rule proposes (R7)
     max_open_cards: int = 5
     dedupe_window_s: float = 30.0
 
