@@ -1,10 +1,12 @@
 """Synthesise the 36 scenario/eval lines with Gemini TTS (non-Meta, disclosed) into data/audio/raw/<id>.wav.
 
 Then run `uv run python scripts/make_audio.py` to produce clean/ (16 kHz) and radio/ (AMR-NB) versions.
-Needs GEMINI_API_KEY in .env (Google AI Studio key). Model: gemini-2.5-flash-preview-tts (or --model gemini-2.5-pro-preview-tts).
+Auth, in order: GEMINI_API_KEY in .env (Google AI Studio) → else Vertex AI with the gcloud CLI token
+(`gcloud auth print-access-token`, project from GOOGLE_CLOUD_PROJECT or `gcloud config get project`, region us-central1).
+Model: gemini-2.5-flash-preview-tts (or --model gemini-2.5-pro-preview-tts).
 Each unit gets its own voice; style prompts make the lines sound like handheld-radio traffic.
 
-Usage: uv run python scripts/gemini_tts.py [--only L08,K07] [--force] [--model ...]
+Usage: uv run python scripts/gemini_tts.py [--only L08,K07] [--force] [--model ...] [--project ID] [--location us-central1]
 """
 
 from __future__ import annotations
@@ -13,6 +15,8 @@ import argparse
 import base64
 import json
 import os
+import shutil
+import subprocess
 import sys
 import time
 import wave
@@ -43,13 +47,15 @@ VOICES = {
     None: "Kore",
 }
 
+# One directive sentence, then a colon, then the line (the documented "Say cheerfully: …" form). An earlier form with a
+# colon-separated adjective list ("…radio: low, calm, clipped…") was read aloud on 3 of 36 lines.
 STYLE = {
-    "calm": "Speak like a Korean fire incident commander on a handheld radio: low, calm, clipped, slightly fast, no emotion.",
-    "normal": "Speak like a firefighter on a handheld radio: clear, slightly fast, clipped sentences, a little background effort.",
-    "firm": "Speak like a fire commander broadcasting an urgent order on the radio: firm, loud, clipped, fast.",
-    "urgent": "Speak like a firefighter in distress on a radio: out of breath, strained, fast, broken into short bursts, frightened but trying to stay controlled.",
-    "en_calm": "Speak like a US firefighter on a handheld radio: clear, clipped, slightly fast.",
-    "en_urgent": "Speak like a US firefighter in distress on a radio: out of breath, strained, fast, short bursts.",
+    "calm": "Say this the way a calm, low-voiced Korean fire incident commander talks quickly into a handheld radio",
+    "normal": "Say this the way a firefighter talks quickly and clearly into a handheld radio while working",
+    "firm": "Say this the way a fire commander shouts a firm, fast, urgent order into the radio",
+    "urgent": "Say this the way a frightened, out-of-breath firefighter in distress gasps it into a radio in short bursts",
+    "en_calm": "Say this the way a US firefighter talks quickly and clearly into a handheld radio",
+    "en_urgent": "Say this the way a frightened, out-of-breath US firefighter in distress gasps it into a radio in short bursts",
 }
 
 # per-line delivery (ids not listed → normal / en_calm)
@@ -75,17 +81,59 @@ def lines() -> list[dict]:
     return out
 
 
-def synth(client: httpx.Client, key: str, model: str, text: str, voice: str, style: str) -> bytes:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+class Auth:
+    """Either an AI Studio key (query param) or a Vertex AI bearer token from the gcloud CLI."""
+
+    def __init__(self, model: str, project: str | None, location: str) -> None:
+        self.key = os.environ.get("GEMINI_API_KEY", "")
+        self.model, self.location = model, location
+        self.project = project or os.environ.get("GOOGLE_CLOUD_PROJECT", "")
+        self.token, self.token_t = "", 0.0
+        if self.key:
+            self.kind = "aistudio"
+            return
+        gcloud = shutil.which("gcloud") or shutil.which("gcloud.cmd")
+        if not gcloud:
+            sys.exit("no GEMINI_API_KEY in .env and no gcloud CLI on PATH")
+        self.gcloud = gcloud
+        if not self.project:
+            self.project = subprocess.run([gcloud, "config", "get", "project"], capture_output=True, text=True).stdout.strip()
+        if not self.project:
+            sys.exit("no gcloud project: pass --project or run `gcloud config set project ID`")
+        self.kind = "vertex"
+
+    def refresh(self) -> None:
+        if self.kind == "vertex" and time.time() - self.token_t > 1800:
+            r = subprocess.run([self.gcloud, "auth", "print-access-token"], capture_output=True, text=True)
+            if r.returncode != 0 or not r.stdout.strip():
+                sys.exit("gcloud auth print-access-token failed; run `gcloud auth login`")
+            self.token, self.token_t = r.stdout.strip(), time.time()
+
+    def url(self) -> str:
+        if self.kind == "aistudio":
+            return f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        host = "aiplatform.googleapis.com" if self.location == "global" else f"{self.location}-aiplatform.googleapis.com"
+        return (f"https://{host}/v1/projects/{self.project}/locations/{self.location}"
+                f"/publishers/google/models/{self.model}:generateContent")
+
+    def post(self, client: httpx.Client, body: dict) -> httpx.Response:
+        self.refresh()
+        if self.kind == "aistudio":
+            return client.post(self.url(), params={"key": self.key}, json=body, timeout=120)
+        return client.post(self.url(), headers={"Authorization": f"Bearer {self.token}"}, json=body, timeout=120)
+
+
+def synth(client: httpx.Client, auth: Auth, text: str, voice: str, style: str) -> bytes:
+    # systemInstruction is rejected by the TTS models (400 INVALID_ARGUMENT), so the directive rides inline.
     body = {
-        "contents": [{"parts": [{"text": f"{style}\n\n{text}"}]}],
+        "contents": [{"role": "user", "parts": [{"text": f"{style}: {text}"}]}],
         "generationConfig": {
             "responseModalities": ["AUDIO"],
             "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}},
         },
     }
     for attempt in range(5):
-        r = client.post(url, params={"key": key}, json=body, timeout=120)
+        r = auth.post(client, body)
         if r.status_code == 429 or r.status_code >= 500:
             wait = 8 * (attempt + 1)
             print(f"   {r.status_code}, retry in {wait}s", flush=True)
@@ -115,10 +163,11 @@ def main() -> None:
     ap.add_argument("--only", default="")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--model", default="gemini-2.5-flash-preview-tts")
+    ap.add_argument("--project", default=None, help="GCP project for the Vertex path (default: gcloud config)")
+    ap.add_argument("--location", default="us-central1")
     args = ap.parse_args()
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if not key:
-        sys.exit("GEMINI_API_KEY missing in .env")
+    auth = Auth(args.model, args.project, args.location)
+    print(f"auth: {auth.kind}" + (f" (project {auth.project}, {auth.location})" if auth.kind == "vertex" else ""))
     only = {s.strip() for s in args.only.split(",") if s.strip()}
     RAW.mkdir(parents=True, exist_ok=True)
     with httpx.Client() as client:
@@ -134,10 +183,10 @@ def main() -> None:
             voice = VOICES.get(ln["unit"], VOICES[None])
             style_key = DELIVERY.get(lid, "en_calm" if ln["lang"] == "en" else "normal")
             t0 = time.time()
-            pcm = synth(client, key, args.model, ln["text"], voice, STYLE[style_key])
+            pcm = synth(client, auth, ln["text"], voice, STYLE[style_key])
             write_wav(out, pcm)
-            side.write_text(json.dumps({"source": "tts_gemini", "model": args.model, "voice": voice, "style": style_key},
-                                       ensure_ascii=False), encoding="utf-8")
+            side.write_text(json.dumps({"source": "tts_gemini", "model": args.model, "voice": voice, "style": style_key,
+                                        "via": auth.kind}, ensure_ascii=False), encoding="utf-8")
             print(f"{lid}: {voice:9s} {style_key:9s} {len(pcm) / 48000:5.1f}s  ({time.time() - t0:.1f}s)  {ln['text'][:36]}")
     print("done → now run: uv run python scripts/make_audio.py --force")
 

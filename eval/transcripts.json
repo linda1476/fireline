@@ -1,586 +1,586 @@
 {
  "clean_kw": {
   "L08": {
-   "text": "지휘대장, 한빛구조대 김하늘, 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽 공기 얼마 안 남았다..",
-   "asr_ms": 2460
+   "text": "지휘대장, 한빛구조대 김하늘, 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽 공기 얼마 안 남았다.",
+   "asr_ms": 3200
   },
   "K07": {
-   "text": "긴급탈출. 긴급탈출. 긴급탈출. 여기 한빛구조대 소방장 김하늘 대원고립 천장 붕괴로 퇴로 차단 2층 동쪽 끝 창고 선반 여 올라온 계단에서 약 십오 미터 공기잔량 절반 이하 사다리와 공기용기 필요",
-   "asr_ms": 3828
+   "text": "긴급탈출, 긴급탈출, 긴급탈출, 여기 한빛구조대 소방장 김하늘, 대원고립, 천장 붕괴로 퇴로 차단, 2층 동쪽 끝 창고 선반 여, 올라온 계단에서 약 십오 미터, 공기잔량 절반 이하, 사다리와 공기용기 필요.,",
+   "asr_ms": 4165
   },
   "E07": {
-   "text": "Mayday, mayday, mayday, mayday.",
-   "asr_ms": 1284
+   "text": "Mayday, mayday, mayday!",
+   "asr_ms": 1488
   },
   "M01": {
-   "text": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 1층 서측 어디쯤 발리와 달라",
-   "asr_ms": 2494
+   "text": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 1층 서측 어디쯤 빨리 와달라",
+   "asr_ms": 2987
   },
   "K10": {
-   "text": "상황실 여기 누리구조대 맨다운 발생 맨다운 발생 1층 후면 출입구 안쪽 삼 미터 대원 한 명 쓰러짐 고급대 후면으로 요청.",
-   "asr_ms": 2675
+   "text": "상황실 여기 누리 구조대 맨다운 발생 맨다운 발생 1층 후면 출입구 안쪽 삼 미터 대원 일 명 쓰러짐 구급대 후면으로 요청.",
+   "asr_ms": 3398
   },
   "L03": {
-   "text": "지휘대장, 여기 누리 119안전센터 소방교 박준 1층 서측 진입 인명 검색 시작.",
-   "asr_ms": 2419
+   "text": "지휘대장, 여기 누리 119안전센터 소방교 박준, 1층 서측 진입, 인명검색 시작.",
+   "asr_ms": 3292
   },
   "L02": {
-   "text": "지휘대장, 여기 한빛구조대 소방장 김하늘, 정면 출입구로 세 명 진입, 2층 동측 우선탐색 실시,.",
-   "asr_ms": 3381
+   "text": "지휘대장 여기 한빛구조대 소방장 김하늘 정면 출입구로 삼 명 진입 이 층 동측 우선탐색 실시.,",
+   "asr_ms": 2691
   },
   "L01": {
-   "text": "전 출동대 여기 지휘대장 지휘권 선언 지휘 위치 정문 앞 3층 도장공장 화재 화재 공격 전략 한빛구조대 2층 동측 우선탐색 누리센터 1층 서측 인명 검색.",
-   "asr_ms": 3605
+   "text": "전 출동대 여기 지휘대장 지휘권 선언 지휘 위치 정문 앞 3층 도장공장 화재 공격 전략 한빛구조대 2층 동측 우선탐색 누리센터 1층 서측 인명검색..",
+   "asr_ms": 3681
   },
   "L04": {
-   "text": "지휘대장, 여기 한빛 119안전센터 팀장, 정면에서 3층 창문으로 확인, 도장공장 신나 드럼 다수, 인화물질 확인, 2층 동측 천장으로 연소 확대 우려,",
-   "asr_ms": 3360
+   "text": "지휘대장 여기 한빛119안전센터 팀장 정면에서 3층 창문으로 확인 도장공장 신나 드럼 다수 인화물질 확인 2층 동측 천장으로 연소 확대 우려.",
+   "asr_ms": 3424
   },
   "L05": {
-   "text": "상황실 여기 지휘대장 대응 대응 한 단계 발령 요청 펌프차 두 대 추가!",
-   "asr_ms": 1887
+   "text": "상황실 여기 지휘대장 대응 1단계 발령 요청 펌프차 2대 추가.",
+   "asr_ms": 2402
   },
   "L06": {
-   "text": "2층 계단 우측 사무실 구조대상자 한 명 정면 계단으로 구출 중..",
-   "asr_ms": 1912
+   "text": "2층 계단 우측 사무실 구조대상자 일 명 정면 계단으로 구출 중.",
+   "asr_ms": 2315
   },
   "L07": {
-   "text": "지휘대장, 여기 누리센터 박준, 1층 서측 검색 중, 이상 없음.",
-   "asr_ms": 1878
+   "text": "지휘대장 여기 누리센터 박준 1층 서측 검색 중 이상 없음.",
+   "asr_ms": 2355
   },
   "L09": {
-   "text": "상황실 여기 지휘대장 추가 펌프차 정문 쪽으로 배치 바람.",
-   "asr_ms": 1690
+   "text": "상황실 여기 지휘대장 추가 펌프차 정문 쪽으로 배치 바람..",
+   "asr_ms": 2526
   },
   "L10": {
-   "text": "사다리랑 공기용기 필요. 동측 창문 쪽으로 이동 중.",
-   "asr_ms": 1625
+   "text": "사다리랑 공기용기 필요. 동측 창문 쪽으로 이동 중..",
+   "asr_ms": 2161
   },
   "L11": {
-   "text": "전 출동대 무선 침묵. 긴급탈출 발생. 한빛구조대 김하늘. 2층 동쪽 창고. 요청 자원 사다리. 사다리. 공기용기. 신속동료구조팀 동측 동측 창문 투입..",
-   "asr_ms": 3092
+   "text": "전 출동대 무선 침묵 긴급탈출 발생 한빛구조대 김하늘 2층 동쪽 창고 요청자원 사다리 공기용기 신속동료구조팀 동측 창문 투입.",
+   "asr_ms": 3505
   },
   "L13": {
    "text": "지휘대장, 여기 누리센터 박준, 1층 서측, 통신 불량 구역이었음, 이상 없음.",
-   "asr_ms": 2325
+   "asr_ms": 2265
   },
   "K02": {
-   "text": "지휘대장, 여기 한빛구조대 2 팀장 정면 출입구로 세 명 진입 발화층 2층 우선 탐색 실시하겠음",
-   "asr_ms": 2224
+   "text": "지휘대장 여기 한빛구조대 2 팀장 정면 출입구로 3명 진입 발화층 2층 우선탐색 실시하겠음..",
+   "asr_ms": 2874
   },
   "K01": {
-   "text": "상황실, 여기 한빛백십구안전센터 팀장, 현장 도착. 지상 삼층 철골조 도장공장, 이층 창문 흑연 분출, 구조대상자 미 확인. 선착대장 지휘권 선언. 지휘 위치 정문 앞 공격 전략. 구조대 한대 추가 요청.",
-   "asr_ms": 3839
+   "text": "상황실, 여기 한빛119안전센터 팀장, 현장 도착, 지상 3층 철골조골조 도장공장, 2층 2층 창문 흡연 분출 구조대상자 미 확인 선착대장 지휘권 선언 지휘 위치 정문 앞 공격 전략 구조대 1대 추가 요청.",
+   "asr_ms": 4674
   },
   "K03": {
-   "text": "지휘대장, 여기 한빛구조대 이 팀장. 2층 계단 우측 사무실에서 구조대상자 한 명 명 발견. 의식 없음. 정면 계단으로 구출 중 구급대 정문 대기 바람..",
-   "asr_ms": 3106
+   "text": "지휘대장 여기 한빛구조대 2 팀장 2층 계단 우측 사무실에서 구조대상자자 1명 발견 의식 없음 정면 계단으로 구출 중 9급대 정문 대기바람..",
+   "asr_ms": 3338
   },
   "K04": {
-   "text": "지휘대장 여기 한빛 119안전센터 팀장 2층 천장 쳐짐 붕괴 우려 신나 드럼 다수 인화물질 확인 내부 진입 대원 위치 확인 바람..",
-   "asr_ms": 2675
+   "text": "지휘대장 여기 한빛119안전센터 팀장 2층 천장 처짐 붕괴 우려 신나 신나 드럼 다수 인화물질 확인 내부 진입 대원 위치 확인 바람",
+   "asr_ms": 3071
   },
   "K05": {
-   "text": "지휘대장 여기 누리 119안전센터 팀장 옥상 세 명 대기 대기 중 옥상은 안전한데 공기 용량이 다 돼서 용기 세 개 개 필요함",
-   "asr_ms": 2738
+   "text": "지휘대장, 여기 누리119안전센터 팀장, 옥상 3명 3명 대기 중, 옥상은상은 안전한데 공기 용량이 다 돼서 용기 세 개 필요함.",
+   "asr_ms": 3179
   },
   "K06": {
-   "text": "전 출동대 여기 지휘대장 전 대원 철수 전 대원 철수 건물 높이 1.5 바퀴로 철수 후 단위 지휘관별 인원 점검 보고。",
-   "asr_ms": 2613
+   "text": "전 출동대 여기 지휘대장 전 대원 철수 전 대원 대원 철수 건물 높이 일점 오 배 밖으로 철수 후 단위 지휘관 변 인원 점검 보고.",
+   "asr_ms": 2555
   },
   "K08": {
-   "text": "전 출동대 무선선 침묵. 여기 지휘대장. 긴급탈출 발생. 한빛구조대 김하늘 대원. 대원고립. 2층 동쪽 끝 요청 자원 사다리. 공기용기. 신속동료구조팀 동측 창문으로 투입..",
-   "asr_ms": 3768
+   "text": "전 출동대 무선 침묵. 여기 지휘대장 긴급탈출 발생. 한빛구조대 김하늘 대원 대원고립 2층 동쪽 끝 요청자원 사다리 공기용기 신속동료구조팀구조팀 동측 창문으로 투입",
+   "asr_ms": 3738
   },
   "K09": {
-   "text": "김하늘 대원, 여기 지휘대장. 침착하게 호흡 조절하고 공기잔량 보고할 것 무전 유지. 교신하지 않을 때 인명구조경보기 작동..",
-   "asr_ms": 2538
+   "text": "김하늘 대원 여기 지휘대장 침착하게 호흡 조절하고 공기잔량 보고할 보고할 것 무전 유지 교신하지신하지 않을 때 인명구조경보기 적동!",
+   "asr_ms": 2727
   },
   "M02": {
-   "text": "한빛구조대 김하늘 바닥이 거져서 거져서 다리가 끼었다 움직일 수가 없다 2층 동쪽 사람 보내달라.",
-   "asr_ms": 2484
+   "text": "한빛구조대 김하늘 바닥이 꺼져서 다리가 끼었다 움직일 수가 없다 2층 동쪽 사람 보내달라",
+   "asr_ms": 2649
   },
   "M03": {
-   "text": "Command, Truck 5, we're cut off, fires between us and the stairs. Second floor, rear side. We We need a way out now.",
-   "asr_ms": 2192
+   "text": "Command, Truck 5, we're cut off. Fire's between us and the stairs. Second floor, rear side. side. We need a way out now.",
+   "asr_ms": 2534
   },
   "M04": {
-   "text": "Engine 21 to Command, I'm down, something fell on me. I can't move. Basement Side Charlie. Send help.",
-   "asr_ms": 2518
+   "text": "Engine 21 to Command. I'm down. Something fell on me. me. I can't move. Basement. Side Charlie. Send help..",
+   "asr_ms": 2519
   },
   "E01": {
-   "text": "dispatch Engine 21 on scene two story wood frame residential heavy smoke showing second floor Side Alpha Engine 21 establishing Main Street Command offensive strategy",
-   "asr_ms": 2513
+   "text": "Dispatch, engine 21 on scene. Two story wood frame residential heavy smoke showing second floor Side Alpha engine 21 establishing Main Street Command offensive strategy",
+   "asr_ms": 2963
   },
   "E02": {
-   "text": "Main Street Command, Truck 5, we're making entry Side Alpha for primary search, second floor.",
-   "asr_ms": 1919
+   "text": "Main Street Command, Truck 5 we're making entry Side Alpha for primary search second floor",
+   "asr_ms": 1998
   },
   "E03": {
-   "text": "Command, Truck 5, victim found, second floor Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs. Need ALS at ALS at Side Alpha.",
-   "asr_ms": 2637
+   "text": "Command, Truck 5, victim found, second floor, Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs, need of ALS at Side Alpha..",
+   "asr_ms": 2942
   },
   "E04": {
-   "text": "Command, Engine 23, floor is soft over the basement possible collapse Side Charlie recommend we back out.",
-   "asr_ms": 1894
+   "text": "Command, Engine 23, floor is soft over the basement, possible collapse, Side Charlie, recommend we back out.",
+   "asr_ms": 2294
   },
   "E05": {
-   "text": "Command, Truck 5, 5, crew is low on air, exiting Side Alpha. Need a a relief crew to finish search on two..",
-   "asr_ms": 2134
+   "text": "Command, Truck 5, crew is low on air. Exiting Side Alpha. Need a relief crew relief crew to finish search on two..",
+   "asr_ms": 2368
   },
   "E06": {
-   "text": "emergency traffic emergency traffic all units evacuate the structure exit Side Side Alpha PAR to follow",
-   "asr_ms": 2137
+   "text": "emergency traffic emergency traffic all units evacuate the structure exit Side Alpha par to follow.",
+   "asr_ms": 2347
   },
   "E10": {
-   "text": "all companies, Main Street Command, give me a PAR.",
-   "asr_ms": 1236
+   "text": "all companies Main Street Command give me a PAR.",
+   "asr_ms": 1533
   },
   "E08": {
-   "text": "Command, Mayday. Location, second floor, Side Charlie, back bedroom by a window Unit Engine 21 Name Firefighter Ortiz Air about 1000 psi Resources I need RIT and a ladder to the Charlie side window",
-   "asr_ms": 3392
+   "text": "Command, Mayday. Location, second floor, Side Charlie, back bedroom by a window. Unit, Engine 21. Name, Firefighter Ortiz. Air, about 1000 PSI. Resources, I need RIT and and a ladder to the Charlie side window.",
+   "asr_ms": 3916
   },
   "E09": {
-   "text": "Mayday acknowledged, Engine 21, all units not involved in the rescue switch to TAC 3. RIT deploy to Side Charlie, second floor window. window. Dispatch, Command, give me a second alarm and an ALS ambulance.",
-   "asr_ms": 3013
+   "text": "Mayday, acknowledged. Engine 21, all units not involved in the rescue switch to TAC 3. RIT deploy to Side Charlie. Second floor window. Dispatch, Command, give me a second alarm and an ALS ambulance.",
+   "asr_ms": 3903
   }
  },
  "clean_nokw": {
   "L02": {
-   "text": "지휘대장, 여기 한빛 구조대 소방장 김하늘 정면 출입구로 세 명 진입 이층 동측 우선 탐색 실시.",
-   "asr_ms": 2162
+   "text": "지휘대장 여기 한빛 구조대 소방장 김하늘 정면 출입구로 삼 명 진입 이층 동측 우선 탐색 실시。",
+   "asr_ms": 2308
   },
   "L01": {
-   "text": "전출동대 여기 지휘대장 지휘관 선언 지휘 위치 정문 앞 삼 층 도장 공장 화재 공격 전략 한빛 구조대 이 층 동측 우선 탐색 누리센터 일 일 층 서측 인명 검색",
-   "asr_ms": 3061
+   "text": "전출동대 여기 지휘대장 지휘권 선언 지휘 위치 정문 앞무나 삼 층 도장 공장 화재 공격 전략 한빛 구조대대 이 층 동측 우선 탐색 누리 센터 일 층 서측 인명 검색,",
+   "asr_ms": 3085
   },
   "L03": {
-   "text": "지휘대장 여기 누리 백십구 안전센터 소방교 박준 일층 서측 진입 인명 검색 시작.",
-   "asr_ms": 2185
+   "text": "지휘대장, 여기 누리 119 안전센터 소방교 박준 1층 서측 진입 인명 검색 시작.",
+   "asr_ms": 2140
   },
   "L05": {
-   "text": "상황실, 여기 지휘대장, 대응 한 단계 발령 요청, 펌프차 두 대 추가,",
-   "asr_ms": 2030
+   "text": "상황실, 여기 지휘대장, 대응 1단계 발령 발령 요청, 펌프차 2대 추가.",
+   "asr_ms": 2103
   },
   "L04": {
-   "text": "지휘대장,진비대장 여기의 한빛 백십구 안전센터 팀장 정면에서 삼 층 창문으로 확인 도장 공장 신나 드럼 다수 인화물질 확인 이 층 동측 천장으로 연소 확대 우려.",
-   "asr_ms": 2823
+   "text": "지휘대장, 여기 한빛 일일구 일구 안전센터 팀장, 정면에서 삼 층 창문으로으로 확인, 도장 공장 신나 드럼 다수 인화물질 확인 이 층 동측 천장으로 연소 확대 우려.",
+   "asr_ms": 3585
   },
   "L06": {
-   "text": "이층 계단 우측 사무실 구조 대상자 한 명, 정면 계단으로 구출 중.",
-   "asr_ms": 2035
+   "text": "2층 2층 계단, 우측 사무실 구조 대상자 일명 정면면 계단으로 구출 중.",
+   "asr_ms": 2126
   },
   "L07": {
-   "text": "지휘대장,진희대장 여기 누리센터 박준 1층 서측 검색 중 이상 없음.",
-   "asr_ms": 1879
+   "text": "지휘대장, 여기 누리센터 박준, 1층 서측 검색 중, 이상 없음.!",
+   "asr_ms": 1952
   },
   "L08": {
-   "text": "지휘대장 한빛 구조대 김하늘 천장 무너져서 출구를 못 찾겠다 이 층 동쪽 창고 쪽 공기 얼마 안 남았다.",
-   "asr_ms": 1967
+   "text": "지휘대장, 한빛 구조대 김하늘 천장 무너져서 출구를 못 찾겠다. 이 층 동쪽 창고 쪽 공기 얼마 안 남았다..",
+   "asr_ms": 2100
   },
   "L09": {
-   "text": "상황실, 여기 지휘대장. 추가 펌프차 정문 쪽으로 배치 바람..",
-   "asr_ms": 1859
+   "text": "사항실,실 여기 지휘대장, 추가 펌프차, 정문 쪽으로 배치 바람..",
+   "asr_ms": 2019
   },
   "L10": {
-   "text": "사다리란 공기용기 비력. 동측 창문 쪽으로 이동 중.,",
-   "asr_ms": 1806
+   "text": "사다리랑 공기용기 필요 동측 창문 쪽으로 쪽으로 이동 중.",
+   "asr_ms": 1779
   },
   "L11": {
-   "text": "전 출동대 무선 친목 긴급 탈출 발생 한빛 구조대 구조대 김하늘 이층 동쪽쪽 창고 요청 자원 사다리 공기 용기 신속 동료 구조팀 동측 창문 투입.!",
-   "asr_ms": 3147
+   "text": "전 출동대 무선 침묵 긴급 탈출 발생 한빛 구조대 김하늘 2층 동쪽 창고 요청 자원 사다리 공기용기 신속 동료 구조팀 동측 창문 투입.",
+   "asr_ms": 2964
   },
   "L13": {
-   "text": "지휘대장 여기 누리센터 박준 1층 서측 통신 분량 구역이었음 이상 없음.",
-   "asr_ms": 2468
+   "text": "지휘대장 여기 누리센터 박준 1층 서측 통신 통신 불량 구역이었음 이상 없음.",
+   "asr_ms": 2170
   },
   "K02": {
-   "text": "진리대장, 여기 한빛 구조대 이 टीम장, 정면 출입구로 세 명 진입, 발화층 이 층 우선 탐색 실시하겠음.",
-   "asr_ms": 2656
+   "text": "지휘대장 여기 한빛 구조대 이 팀장 정면 출입구로 삼 명 진입 발화층 이 층 우선 탐색 실시하겠음.",
+   "asr_ms": 2431
   },
   "K01": {
-   "text": "상황실 여기 한빛 119 안전센터 안전센터 팀장 현장 도착 지상 3층 철골조 도장 공장 2층 창문 흙연 분출 구조 대상자 미 확인 선착 대장 지휘관 선언 지휘 위치 정문 앞 공격 전략 구조대 한 대 추가 요청",
-   "asr_ms": 4552
+   "text": "상황실 여기 한빛 119 119 안전센터 팀장 현장 도착 지상 3층 철골조 도장 공장 2층 창문 흑연 분출 구조 대상자 미 확인 선착대장 지휘권 선언 지휘 위치 정문 앞 공격 전략 구조대 1대 추가 요청",
+   "asr_ms": 3950
   },
   "K03": {
-   "text": "지휘대장,진희대장 여기 한빛 구조대 이대 이 팀장 이층 계단 우측 사무실에서 구조 대상자 대상자 한 명 발견 의식식 없음 정면 계단으로 계단으로 구출 중 구급대 정문 대기 바람.",
-   "asr_ms": 3206
+   "text": "지휘대장 여기 한빛 구조대 2팀장 이침 계단 우측 사무실에서 구조 대상자 일 명 발견의식 없음 정면 계단으로 구출 중 구급대 정문 대기 바람.",
+   "asr_ms": 3046
   },
   "K04": {
-   "text": "지휘대장, 여기 한빛 백십구 안전센터 팀장, 이층 천장 처짐, 붕괴 우려. 신나 드럼 다수, 인화물질 확인. 내부 진입 대원 위치 확인 바람..",
-   "asr_ms": 3346
+   "text": "지휘대장, 여기 한빛 119 안전센터 팀장 이충 천장장 처짐 붕괴 우려 신나 드럼 다수 인화 물질 확인 내부 진입 기원원 위치 확인 바람!",
+   "asr_ms": 3275
   },
   "K05": {
-   "text": "지휘대장진리대장 여기 누리 백십구 안전센터 팀장 옥상 옥상 세 명 대기 중 옥상은 안전한데 공기 용량이 다 돼서 용기 세 개 필요함.,",
-   "asr_ms": 2817
+   "text": "지휘대장, 여기 누리 119 안전센터 팀장, 옥상상 3명 대기 중, 옥상은 안전한데 공기 용량이 용량이 다 돼서 용기 세 개 필요함..",
+   "asr_ms": 2700
   },
   "K06": {
-   "text": "전출동대 여기 지휘대장 전대원 철수 전대원 전대원 철수 건물 건물 높이 일 평 오 밖으로 철수 후 단위 지휘관별 인원 점검 점검 보고.",
-   "asr_ms": 3314
+   "text": "전 출동대 출동대 여기 지휘대장 전 대원 철수 전 대원 철수 건물 건물 높이 일 정 오 배 밖으로 철수 후 단위 지휘 관변 인원 점검 보고。",
+   "asr_ms": 2954
   },
   "K08": {
-   "text": "전출동대무선침묵. 여기 지휘대장. 긴급 탈출 발생. 한빛 고조대 김한을 대원. 대원원 고립. 2층 동쪽 끝 요청 자원 사다리. 공기 공기 용기. 신속동요 구조팀 동측 창문으로 투입..",
-   "asr_ms": 3490
+   "text": "전 출동대 무선 침묵. 여기 지휘대장, 긴급 탈출 발생. 한빛 구조대 김하늘 대원 대원원 고립 2층 동쪽 끝 요청 자원 사다리 공기용기 신속 동료 구조팀 동측 창문으로 투입",
+   "asr_ms": 3333
   },
   "K07": {
-   "text": "긴급 탈출, 긴급 탈출, 긴급 탈출 여기 한빛 구조대 소방장 기하늘 대원 고립 천장 붕괴로 퇴로 차단 2층 동쪽 끝 창고 선반 옆 선반 옆 올라라운 계단에서 약 15미터 공기 잔량 절반 이하 사다리와 공기용기 필요.",
-   "asr_ms": 3926
+   "text": "긴급 탈출 긴급 탈출 긴급 탈출 여기 한빛 구조대 소방장 김하늘 대원 고림 천장 붕괴로 퇴로 차단 2층 동쪽 끝 창고 선반여 올라온 계단에서 약 십오 미터오 미터 공기 잔량 절반 이하 사다리와 공기 용기 필요.!",
+   "asr_ms": 4215
   },
   "K09": {
-   "text": "김하늘 대원 여기 지휘대장 침착하게 호흡 조절하고 공기 잔량 보고할 것 무전 유지 교신하지 않을 때 인명 구조 경보기 작동.",
-   "asr_ms": 2822
+   "text": "김한을 대원 여기 지휘대장 침착하게 호흡 조절하고 공기 잔량 보고할 것 무전 유지 교신하지 않을 때 인명 구조경 보기 적동",
+   "asr_ms": 2621
   },
   "K10": {
-   "text": "상황실, 여기 누리구조대, 맨다운 발생, 맨다운 발생, 1층 후면 출입구 안쪽 3미터, 대원 한 명 쓰러짐, 고급대 후면으로 요청,",
-   "asr_ms": 2909
+   "text": "상황실 여기 누리 구조대 맨다운 발생 맨다운 발생 일층 후면 출입구 안쪽 삼 미터 대원 일 명 쓰러짐 구급대 후면으로 요청",
+   "asr_ms": 2870
   },
   "M01": {
-   "text": "지휘대장휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 1층 서쪽 어디쯤 발리와 달라",
-   "asr_ms": 2816
+   "text": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 일층 서쪽 서쪽 어디쯤 빨리 와달라!",
+   "asr_ms": 2587
   },
   "M02": {
-   "text": "한빛고조대 김하늘. 바닥이 꺼져서 다리가 꼿였다. 움직일 수가 없다. 2층 동쪽. 사람 보내달라.",
-   "asr_ms": 2698
+   "text": "한빛 구조대 기만을 바닥이 꺼져서 다리가 끼었다 움직일 수가 없다 없다 2층 동쪽 사람 보내달라!.",
+   "asr_ms": 2404
   },
   "M03": {
-   "text": "Command, truck truck five, we're cut off, fires between us and the stairs. Second floor, rear side. We need a way out now.",
-   "asr_ms": 2620
+   "text": "Command, truck five, we're cut off. Fires between us and the stairs. Second floor, rear side. We need a way out now.",
+   "asr_ms": 2386
   },
   "M04": {
-   "text": "Engine 21 to 21 to command. I'm down, something fell on me, I can't move. Basement, side Charlie. Send help.",
-   "asr_ms": 2807
+   "text": "Ancient 21 to command. command. I'm down, something fell on me, I can't move, basement, side Charlie, send help..",
+   "asr_ms": 2429
   },
   "E01": {
-   "text": "dispatch, engine 21 on scene, two story wood frame residential, heavy smoke showing second floor side alpha. Engine 21 establishing main street command offensive strategy",
-   "asr_ms": 2993
+   "text": "Dispatch, Engine 21 on scene, two story wood frame residential heavy smoke showing second second floor side alpha Engine 21 establishing Main Street Command offensive strategy",
+   "asr_ms": 2771
   },
   "E02": {
-   "text": "main street command truck five we're making entry side alpha for primary search second floor.",
-   "asr_ms": 1986
+   "text": "Main Street Command, Truck Five, we're making entry side Alpha for primary search, second floor..",
+   "asr_ms": 2224
   },
   "E03": {
-   "text": "command, truck five, victim found, second floor Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs. Need ALS at side alpha.",
-   "asr_ms": 2889
+   "text": "command truck five, victim found, second floor, Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs, need of ALS at side alpha.",
+   "asr_ms": 3057
   },
   "E04": {
-   "text": "command, engine 23, floor is soft over the basement, possible collapse side Charlie. recommend we back out.",
-   "asr_ms": 2333
+   "text": "command, Engine 23, floor is soft over the basement, possible collapse side Charlie, recommend we back out.",
+   "asr_ms": 2096
   },
   "E05": {
-   "text": "command, truck five, crew is low on air, exiting side alpha. Need a relief crew to finish search on two.",
-   "asr_ms": 2392
+   "text": "command, truck five, crew is low on air, exiting side alpha, need a relief crew to finish search on two.",
+   "asr_ms": 2144
   },
   "E06": {
-   "text": "emergency traffic emergency traffic all all units evacuate the structure exit side alpha PAR to follow.",
-   "asr_ms": 2245
+   "text": "emergencyemergency traffic emergency traffic all units evacuate the structure exit side alpha par to follow.",
+   "asr_ms": 2178
   },
   "E07": {
-   "text": "Mayday mayday mayday.",
-   "asr_ms": 1491
+   "text": "May Day, day, May day, May day.",
+   "asr_ms": 1538
   },
   "E08": {
-   "text": "Command, Mayday. Location, second floor, side Charlie, back bedroom by a window. Unit, Unit, engine 21. name, firefighter Ortiz. air, about 1000 psi resources, I need RIT and a ladder to the Charlie side window",
-   "asr_ms": 3619
+   "text": "command, mayday, location, second floor, side Charlie, back bedroom by a by a window. Unit, engine 21, name, firefighter Ortiz, air, about 1000 PSI, resources, I need RIT and a ladder to the Charlie side window..",
+   "asr_ms": 4163
   },
   "E09": {
-   "text": "may day acknowledged acknowledged, engine 21, all units not involved in the rescue switch to TAC 3, RIT deploy to side Charlie, second floor window dispatch command give me a second alarm and an ALS ambulance.",
-   "asr_ms": 3171
+   "text": "Mayday acknowledged. Engine 21, all units not involved in the rescue switch to tack three Rit deploy to side Charlie second floor window dispatch dispatch command give me a second alarm alarm and an ALS ambulance.",
+   "asr_ms": 3801
   },
   "E10": {
-   "text": "All companies, Main Street Command, give me a PAR.",
-   "asr_ms": 1789
+   "text": "All companies, companies, Main Street Command, give me a par.",
+   "asr_ms": 2023
   }
  },
  "radio_kw": {
   "L01": {
-   "text": "전 출동대, 여기 지휘대장, 지휘권 선언, 지휘 위치 정문 앞 3층 도장공장 화재, 공격 전략, 한빛구조대 2층 동측 우선탐색, 누리센터 1층 서측 인명 검색,",
-   "asr_ms": 3660
+   "text": "전 출동대 여기 지휘대장 지휘권권 선언 지휘 위치 정문 앞 앞 삼 층 도장공장 화재 공격 전략 한빛 구조대 이대 이 층 동측 우선탐색 누리센터 일 층 서측 인명검색",
+   "asr_ms": 3469
   },
   "L02": {
-   "text": "지휘대장 여기 한빛구조대 소방장 김하늘 정면 출입구로 세 명 진입 이 층 동측 우선탐색 실시",
-   "asr_ms": 2590
+   "text": "지휘대장 여기 한빛구조대 소방장 소방장 김하늘 정면 출입구로 삼 명 진입 이 층 동측 우선 탐색 실시",
+   "asr_ms": 2642
   },
   "L03": {
-   "text": "지휘대장 여기 누리 119안전센터 소방교 박준 1층 서측 진입 인명 검색 시작",
-   "asr_ms": 2314
+   "text": "지휘대장 여기 누리 119안전센터 소방교 박준, 1층 서측 진입, 인명검색 시작.",
+   "asr_ms": 2111
   },
   "L04": {
-   "text": "지휘대장, 여기 한빛 119안전센터센터 팀장, 정면에서 3층 창문으로 확인, 도장공장 신나 드럼 다수, 인화물질 확인. 2층 동측 천장으로 연소 확대 우려.",
-   "asr_ms": 3681
+   "text": "지휘대장 여기 한빛119안전센터 팀장 정면에서 3층 창문으로 확인 도장공장 신나 드럼 다수 인화물질 확인 2층 동측 천장으로장으로 연소 확대 우려",
+   "asr_ms": 3513
   },
   "L06": {
-   "text": "2층 계단 우측 사무실 구조대상자 안명 안명 정면 계단으로 구출출 중",
-   "asr_ms": 2139
+   "text": "2층 계단 우측 사무실 구조대상자 일명 정면 계단으로 구출 중.",
+   "asr_ms": 2486
   },
   "L05": {
-   "text": "상황실 여기 지휘대장 대응 한 단계 발령 요청 펌프차 두 대 추가",
-   "asr_ms": 2253
+   "text": "상황실 여기 지휘대장 대응 일단계 발령 요청 펌프차 2대 추가",
+   "asr_ms": 2410
   },
   "L07": {
    "text": "지휘대장 여기 누리센터 박준 1층 서측 검색 중 이상 없음",
-   "asr_ms": 2294
+   "asr_ms": 2346
   },
   "L09": {
-   "text": "상황실, 여기 지휘대장, 추가 펌프차 정문 쪽으로 배치 바람.",
-   "asr_ms": 2354
+   "text": "상황실 여기 지휘대장 추가 펌프차 정문 쪽으로 쪽으로 배치해 바람",
+   "asr_ms": 2327
   },
   "L08": {
-   "text": "지휘대장 한빛구조대 김하늘 천장 무너져서 출구를 못 찾겠다 2층 동쪽 창고 쪽 공기 얼마 안 남았다",
-   "asr_ms": 2615
+   "text": "지휘대장 한빛구조대 김하늘 천장 무너져서 출구를 못 찾겠다 2층 동쪽 창고 쪽 공기 얼마 안 남았다..",
+   "asr_ms": 2968
   },
   "L10": {
-   "text": "사다리랑 공기용기 필요 동측 창문 창문 쪽으로 진입 동중",
-   "asr_ms": 2048
+   "text": "사다리랑 공기용기 필요 동측 창문 쪽으로 이동 중",
+   "asr_ms": 2070
   },
   "L11": {
-   "text": "전 출동대 무선 침묵. 긴급탈출 발생. 한빛구조대 김하늘, 2층 동쪽 창고, 요청 자원 사다리, 공기용기, 신속동료구조팀 동측 창문 창문 투입,",
-   "asr_ms": 3613
+   "text": "전 출동대 무선 침묵 긴급탈출 발생 한빛구조대 김하늘 2층 동쪽 창고 창고 요도청 대원 사다리 공기용기 신속동료구조팀 동측 창문 투입。",
+   "asr_ms": 3420
   },
   "L13": {
-   "text": "지휘대장 여기 누리센터 박준 일층 서측 통신 불량 불량 구역이었음 이상 없음",
-   "asr_ms": 2538
+   "text": "지휘대장, 여기 누리센터 박준, 1층 서측, 통신 불량 구역이었음. 이상 없음.",
+   "asr_ms": 2494
   },
   "K02": {
-   "text": "지휘대장 여기 한빛구조대 이 팀장 정면 출입구로 세 명 진입 ara층 2층 우선탐색 실시하겠음",
-   "asr_ms": 2015
+   "text": "지휘대장 여기 한빛구조대 2 팀장 정면 출입구로 삼 명 진입 발화층 이 층 우선 탐색 실시하겠음",
+   "asr_ms": 2559
   },
   "K01": {
-   "text": "상황실, 여기 한빛 백십구 안전센터 팀장 현장 도착 지상 삼층 철골조 도장공장 이층 창문 흑연 분출 구조 대상자 미 확인 선착대장 지휘권 선언 지휘 위치 정문 앞 공격 전략 구조대 한빛 추가 요청",
-   "asr_ms": 4448
+   "text": "상황실 여기 한빛 119 안전센터 팀장 현장 도착 지상 3층 철골조 도장공장 2층 창문 흑연 분출 구조대상자 미 확인 선착대장 지휘권 선언 지휘 위치 정문 앞 공격 전략 구조대 1대 추가 요청",
+   "asr_ms": 4465
   },
   "K03": {
-   "text": "지휘대장 여기 한빛구조대 이 팀장 이 층 계단 우측 사무실에서 구조대상자 한 명 발견 의식 없음 정면 계단으로 구출 중 구급대 정문 대기 바람",
-   "asr_ms": 3217
+   "text": "지휘대장 여기 한빛구조대 이 팀장 2층 계단 우측 사무실에서 구조대상자 일 명 발견 의식 없음 정면 계단으로 구출 중 구급대 정문 대기 바람",
+   "asr_ms": 3463
   },
   "K04": {
-   "text": "지휘대장, 여기 한빛 119안전센터센터 팀장, 2층 천장 처짐, 붕괴 우려, 신나 드럼 다수, 인화물질 확인, 내부 내부 진입 대원 위치 확인 바람",
-   "asr_ms": 3196
+   "text": "지휘대장 여기 한빛119안전센터 팀장 2층 천장 처짐 붕괴 우려 신나 드럼 다수 인화물질 확인 내부 진입 기원 위치 확인 바람",
+   "asr_ms": 3134
   },
   "K05": {
-   "text": "지휘대장, 여기 누리 119안전센터 팀장, 옥상 세 명 대기 중. 옥상은 안전한데 공기 용량이 다 돼서 용기 세 개 필요함.",
-   "asr_ms": 2295
+   "text": "지휘대장 여기 누리119안전센터 팀장 옥상 3명 대기 중 옥상은 안전한데 공기 용량이 다 돼서 용기 세 개 필요함.",
+   "asr_ms": 3183
   },
   "K06": {
-   "text": "전 출동대 여기 지휘대장 전 전 대원 철수 전 대원 철수 건물 높이 1.5m 밖으로 철수 후 단위 지휘관별 인원 점검 보고 보고",
-   "asr_ms": 2877
+   "text": "전 출동대 여기 지휘대장 전 대원 철수 전 대원 철수 건물 높이 높이 일점 오배 밖으로 철수 후 단위 지휘관 변 변 인원 점검 보고",
+   "asr_ms": 3288
   },
   "K08": {
-   "text": "전 출동대 무선 침묵 여기 지휘대장휘대장 긴급탈출 발생 한빛구조대 김하늘 대원 대원고립 2층 동쪽 끝 요청 자원 사다리 공기용기 신속동료구조팀 동측 창문으로 투입",
-   "asr_ms": 3196
+   "text": "전 출동대 무선 침묵 여기 지휘대장 긴급탈출 발생 한빛구조대 김하늘 대원 대원고립 2층 동쪽 끝 요청자원 사다리 공기용기 신속동료구조팀팀 동측 창문으로 투입",
+   "asr_ms": 3871
   },
   "K07": {
-   "text": "긴급탈출. 긴급탈출. 긴급탈출. 긴급탈출. 여기 한빛구조대 소방장 김하늘. 대원고립. 천장 붕괴로 퇴로 차단. 2층 동쪽 끝 창고 선반 옆. 올라온 계단에서 약 십오 미터. 공기잔량 절반 이하. 사다리와 용기용기 필요.",
-   "asr_ms": 3551
+   "text": "긴급탈출 긴급탈출 긴급탈출 여기 한빛구조대 소방장 김하늘 대원고립 천장 붕괴로 퇴로 차단 2층 동쪽 끝 창고 선반 여 올라온 계단에서 약 십오 미터 미터 공기잔량 절반 이하 사다리와 용기 용기 필요.",
+   "asr_ms": 4539
   },
   "K09": {
-   "text": "김하늘 대원 여기 지휘대장 침착하게 호흡 조절하고 공기잔량 보고할 건 무전 유지 교신하지 않을 때 인명구조경보기 작동",
-   "asr_ms": 2356
+   "text": "김하늘 대원 여기 지휘대장 침착하게 호흡 조절하고 공기잔량 보고할 것 무전 유지 교신하지 않을 때 인명구조경보기 적동",
+   "asr_ms": 2919
   },
   "K10": {
-   "text": "상황실, 여기 누리구조대. 맨다운 발생, 맨다운 발생. 1층 후면 출입구구 안쪽 삼 미터, 대원 대원 한 명 쓰러짐. 고급대 후면으로 요청.",
-   "asr_ms": 3160
+   "text": "상황실 여기 누리구조대 구조대 맨다운 발생 맨다운 발생 1층 후면 출입구 안쪽 삼 미터 대원 일 명 쓰러짐 구급대 후면으로 요청",
+   "asr_ms": 3265
   },
   "M01": {
-   "text": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 1층 서쪽 어디쯤 알리와 달라",
-   "asr_ms": 2465
+   "text": "지휘대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다 1층 서쪽 어디쯤 빨리 와달라",
+   "asr_ms": 2959
   },
   "M02": {
-   "text": "한빛구조대 김하늘 바닥이 꺼져서 거져서 다리가 끼었다 움직일 수가 없다 2층 동쪽 동쪽 사람 보내달라。",
-   "asr_ms": 2303
+   "text": "한빛구조대 김하늘 바닥이 꺼져서 다리가 끼었다 움직일 수가 없다 2층 동쪽 사람 보내달라",
+   "asr_ms": 2768
   },
   "M03": {
-   "text": "Command, Truck 5, we're cut off. Fire's between us and the stairs. Second floor, rear side, we need a way out now.",
-   "asr_ms": 2180
+   "text": "Command, Truck 5, we're cut off, fire's between us and the stairs, second floor, rear side, we need a way out now.",
+   "asr_ms": 3096
   },
   "M04": {
-   "text": "Engine 21 to Command, I'm down. Something Something fell on me. I can't move. Basement, Side Charlie. Send help..",
-   "asr_ms": 2319
+   "text": "Engine 21 to Command, I'm down something fell on me I can't move basement Side Charlie send help",
+   "asr_ms": 2690
   },
   "E01": {
-   "text": "dispatch. Engine 21 on scene. Two story wood frame residential. Heavy smoke showing second floor Side Alpha. Engine 21, establishing Main Street Command. Offensive strategy.",
-   "asr_ms": 2661
+   "text": "Dispatch, Engine 21 on scene, two story wood frame residential, heavy smoke showing second floor floor Side Alpha, Engine 21 establishing Main Street Command, offensive strategy,",
+   "asr_ms": 3272
   },
   "E02": {
-   "text": "Main Street Command, Truck 5, we're making entry Side Alpha for primary search, second floor,",
-   "asr_ms": 1884
+   "text": "Main Street Command, Truck 5, we're making entry Side Alpha for primary search second floor",
+   "asr_ms": 2292
   },
   "E03": {
-   "text": "Command, Truck 5, victim found, second floor Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs. Need ALS at Side Alpha.",
-   "asr_ms": 2408
+   "text": "Command, Truck 5, victim found, second floor, Bravo Charlie corner bedroom, unconscious adult, removing via interior stairs, need ALS at Side Alpha.",
+   "asr_ms": 3278
   },
   "E04": {
-   "text": "Command, Engine 23, floor is soft over the basement, the basement. Possible collapse Side Charlie. Recommend we back out.",
-   "asr_ms": 2039
+   "text": "Command, Engine 23, floor is soft over the basement. Possible collapse collapse, Side Charlie, recommend we back back out.",
+   "asr_ms": 2798
   },
   "E05": {
-   "text": "Command, Truck 5, 5, crew is low on air. Exiting Side Alpha. Need a relief crew to finish search on two.",
-   "asr_ms": 2171
+   "text": "Command, Truck 5, crew is low on air, exiting Side Alpha, need a relief crew to crew to finish search on two.",
+   "asr_ms": 2358
   },
   "E06": {
-   "text": "emergency traffic. Emergency traffic. All units evacuate the structure. Exit Side Alpha. PAR to follow.",
-   "asr_ms": 2141
+   "text": "emergency traffic emergency traffic all units evacuate the structure exit Side Alpha PAR to follow",
+   "asr_ms": 2181
   },
   "E07": {
-   "text": "Mayday, Mayday, Mayday",
-   "asr_ms": 1462
+   "text": "Mayday! Mayday! Mayday!",
+   "asr_ms": 1484
   },
   "E08": {
-   "text": "Command, Mayday. Location, second floor, Side Charlie, back bedroom by a window. Unit, Engine 21. Name, Firefighter Ortiz. Air, about 1000 psi. psi. Resources, I need RIT and a ladder to the Charlie side window.",
-   "asr_ms": 3249
+   "text": "Command, Mayday. Location, second floor, Side Charlie, back bedroom by a window. Unit, Engine 21. Name, Firefighter Ortiz. Air, about 1,000 PSI. Resources, I need RIT and a ladder to the Charlie side window.",
+   "asr_ms": 4052
   },
   "E09": {
-   "text": "Mayday acknowledged. Engine 21. All units not involved in the rescue switch to Tac 3. RIT deploy to Side Charlie, second floor window. Dispatch, Command, give me a second alarm and an ALS ambulance.",
-   "asr_ms": 3248
+   "text": "Mayday, acknowledged. Engine 21, all units not involved in the rescue switch to Tac 3, RIT deploy to Side Charlie, second floor window, dispatch Command, give me a second alarm alarm and an ALS ambulance",
+   "asr_ms": 3700
   },
   "E10": {
    "text": "all companies, Main Street Command, give me a PAR.",
-   "asr_ms": 1708
+   "asr_ms": 1508
   }
  },
  "radio_nokw": {
   "L01": {
-   "text": "전출동대 여기 지휘대장 지휘관 선언 지휘 위치 정문 앞 3층 도장공장 도장공장 화재 공격 전략 한빛고조대 2층 동측 우선 탐색 누리슨 더 1층 서측 인명 검색",
-   "asr_ms": 3318
+   "text": "전출동대 여기 지휘대장 지휘권 선언 지휘 위치 정문 앞 삼층 도장 공장 화재 공격 전략 한빛 구조대 이층 동측 우선 탐색 누리 센터 일층 서측 인명 검색",
+   "asr_ms": 3090
   },
   "L02": {
-   "text": "지리대장 여기 한빛 구조대 소방장 소방장 김한을 정면 출입구로 세 명 진입 이층 동측 우선 탐색 실시",
-   "asr_ms": 2128
+   "text": "지휘대장 여기 한빛 구조대 소방장 김하늘 정면 출입구로 삼 명 진입 이층 동측 우선 탐색 실시",
+   "asr_ms": 2566
   },
   "L03": {
-   "text": "지휘대장, 여기 우리 백십구 안전센터 소방교 박준 일층 서측 진입 인명 검색 시작",
-   "asr_ms": 2228
+   "text": "지휘대장 여기 누리 일일구 안전센터 소방교 박준 일층 서측 진입 인명 검색 시작",
+   "asr_ms": 2294
   },
   "L04": {
-   "text": "진리대장 여기 한빛 백십구 안전센터 팀장 정면에서 삼층 창문으로 확인 도장 공장 신나 드럼 다수 인화물질 확인 이층 동측 천장으로 연소 확대 우려",
-   "asr_ms": 2962
+   "text": "지휘대장 여기 한빛 일일구 119 안전센터 팀장 정면에서 3층 창문으로 확인 도장 공장 신나 드럼 다수 인화 물질 확인 2층 동측 천장으로 연소 확대 우려",
+   "asr_ms": 3247
   },
   "L05": {
-   "text": "상황실 여기 지휘대장 대응 한 단계 발령 요청 펌프차 두 대 추가",
-   "asr_ms": 1887
+   "text": "상황실상황실 여기 지휘대장 대응 1단계 발령 요청 펌프차 2대 추가",
+   "asr_ms": 1698
   },
   "L06": {
-   "text": "이층 기단 우측 사무실 구조 대상자 자녀 정면 계단으로 구출 중",
-   "asr_ms": 1661
+   "text": "2층 계단 우측 사무실 구조 대상자 일 명 정면 계단으로 구출 중.",
+   "asr_ms": 2111
   },
   "L07": {
-   "text": "지리대장, 여기 누리센터 박줄, 1층 서측 검색 중, 이상 없음",
-   "asr_ms": 2031
+   "text": "지휘대장 여기 누리센터 박준준 1층 서측 검색 중 이상 없음",
+   "asr_ms": 1929
   },
   "L09": {
-   "text": "상황실 여기 지휘대장 추가 펌프차 정문 쪽으로 배치 바람",
-   "asr_ms": 2045
+   "text": "상황실 여기 지휘대장 추가 펌프차 정문 정문 쪽으로 배치 바람.",
+   "asr_ms": 1858
   },
   "L10": {
-   "text": "하다리란 공기용기 필요. 동측 창문 쪽으로 이동 중.",
-   "asr_ms": 1689
+   "text": "사다리랑 공기용기 필요 동축 측면 쪽으로 이동 중",
+   "asr_ms": 1850
   },
   "L08": {
-   "text": "지휘대장, 한빛고조대 김하늘, 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽 공기 얼마 안 남았다.",
-   "asr_ms": 2664
+   "text": "지휘대장 한빛 구조대 김하늘 천장 무너져서 출구를 못 찾겠다 이 층 동쪽 창고 쪽 공기 얼마 안 남았다.",
+   "asr_ms": 2726
   },
   "L11": {
-   "text": "전 출동대 무선 친목 긴급 긴급 탈출 발생 한빛 고조대 김한을 2층 동쪽 창고 요청 자원 자원 사다리 공기 용기 신속 동요 구조팀 동측 창문 투입",
-   "asr_ms": 2474
+   "text": "전 출동대 무선 친목 긴급 탈출 발생 한빛 구조대 김하늘 2층 동쪽 창고 요청 자원 사다리 공기용기 신속 동료 구조팀 동측 창문 투입",
+   "asr_ms": 3175
   },
   "L13": {
-   "text": "지휘대장 여기 누리센터 박준 일층 서측 통신 통신 불량 구역이었음 이상 없음",
-   "asr_ms": 2245
+   "text": "지휘대장 여기 누리센터 박준 박준 일층 서측 통신 불량 구역이었음 이상 없음.",
+   "asr_ms": 2118
   },
   "K02": {
-   "text": "지금 이대장 여기 한빛 구조대 이 팀장 정면 출입구로 세 명 진입 바라침 이 층 우선 탐색 실시하겠음",
-   "asr_ms": 2126
+   "text": "지휘대장, 여기 한빛 구조대 이 팀장 정면 출입구로 삼 명 진입 발화층 이 층 우선 탐색 실시하겠음",
+   "asr_ms": 2282
   },
   "K01": {
-   "text": "상황실, 여기 한빛 백십구 안전센터 팀장, 현장 도착. 지상 삼층 철골조 도장 공장. 이층 창문 후견 분출. 구조 대상자 미 확인. 선착대장 지휘관 선언. 지휘 위치 정문 앞 공격 전략. 구조대 한 대 추가 요청.",
-   "asr_ms": 3665
+   "text": "상황실상왕실 여기 한빛 일일구 안전센터 팀장 현장 도착 지상 삼 층 철골조 도장 공장 이 층 창문 흑연 분출 분출 구조 대상자 미확인 선착대장 지휘권 선언 지휘 위치 정문 앞 공격 전략 구조대 일 대 추가 요청",
+   "asr_ms": 4336
   },
   "K03": {
-   "text": "틀기대장. 여기 한빛고조대 이 팀장. 이층 계단 우측 사무실에서 구조대 상자 한 한 명 발견. 의식 없음. 없음. 정면 계단으로 구출 중 구급대 정문 대기 바람",
-   "asr_ms": 2866
+   "text": "지휘대장 여기 한빛 구조대 2 팀장 2 층 계단 우측 사무실에서 구조 대상자 일명 발견 의식 없음 정면 계단으로 구출 중 구급대 정문 대기 바람.",
+   "asr_ms": 2893
   },
   "K04": {
-   "text": "진리대장. 여기 한빛 119 안전센터 팀장. 이층 천장 처짐. 붕괴 우려. 신나 드럼 다수. 인화물질 확인. 내부 진입 대원 위치 확인 바람.",
-   "asr_ms": 2853
+   "text": "지휘대장 여기 한빛 일일구 안전센터 팀장 이층 천장 처짐 붕괴 우려 신나 드럼 다수 인화 물질 확인 내부 진입 기원 위치 확인 바람",
+   "asr_ms": 2618
   },
   "K05": {
-   "text": "칠리대장, 여기 우리 백십구 안전센터센터 팀장 옥상 세 세 명 대기 중 옥상은 안전한데 공기 농량이 다 돼서 용기 세 개 필요함.",
-   "asr_ms": 2401
+   "text": "지휘대장 여기 누리 일일구 안전센터 팀장 옥상 삼 명 대기 중 옥상은 안전한데 공기 용량이 다 용량이 다 돼서 용기 세 개 필요함.",
+   "asr_ms": 2691
   },
   "K06": {
-   "text": "전출동대 여기 지휘대장 전 대원 철수 전 대원 철수 건물 높이 일점 오 회 밖으로 철수 후 단위 지휘관별 인원 점검 보고",
-   "asr_ms": 2534
+   "text": "전 출동대 여기 지휘대장 전 대원 철수 전 대원 철수 건물 높이 일 정 오 배 밖으로 철수 후 단위 지휘관 변 인원 점검 보고",
+   "asr_ms": 3249
   },
   "K07": {
-   "text": "김급 발굴 긴급 발굴 긴급 발굴 여기 한빛 구조대 소방장 김한을 대원 고립 천장 붕괴로 퇴로 차단 2층 동쪽 끝 창고 선반 옆 올라온 계단에서 약 15미터 공기 잔량 절반 이하 사다리와 공기용기 필요",
-   "asr_ms": 3404
+   "text": "긴급 탈출 긴급 탈출 긴급 탈출 여기 한빛 구조대 소방장 김하늘 대원 고립 천장 붕괴로괴로 퇴로도 차단 2층 동쪽 끝 창고 선반 여 올라온 계단에서 약 십오 미터 공기 잔량 절반 절반 이하 사다리와 공기 공기 용기 필요",
+   "asr_ms": 4076
   },
   "K08": {
-   "text": "전출동대 무선 친목 여기 진리대장 긴급 파출 발생 한빛 고조대 기만을 대원 대원 고립 2층 동쪽 끝 요청 자원 사다리 공기 용기 신속 동료 구조팀 동측 창문으로 투입",
-   "asr_ms": 3296
+   "text": "전 출동대 무선 친묵 여기 지휘대장 긴급 탈출 발생 한빛 구조대 김한을 대원 대원 고립 2층 동쪽 끝 요청 자원 사다리 공기용기 신속 동료 구조팀 동측 창문으로 투입.!",
+   "asr_ms": 3524
   },
   "K09": {
-   "text": "기만을 대원 여기 즐기대장 침착하게 호흡 조절하고 공기 잔량 보고할 건 무전 유지 교신하지 않을 때 인명 구조 경보기 작동.",
-   "asr_ms": 2412
+   "text": "김한을 대원 여기 지휘대장 침착하게 호흡 조절하고 공기 잔량 보고할 것 무전 유지 교신하지 않을 때 임명 구조경 보기 적동",
+   "asr_ms": 2395
   },
   "K10": {
-   "text": "상황실 여기 우리 구조대 맨다운 발생 맨다운 발생 일층 후면 출입구 안쪽 삼 미터 대원 한 명 쓰러짐 구급대 후면으로 요청",
-   "asr_ms": 2567
+   "text": "상황실 여기 누리 구조대 맨다운 발생 발생 맨다운 발생 일층 후면 출입구 안쪽 삼 미터 대원 이 명 쓰러짐 구급대 후면으로 요청",
+   "asr_ms": 2982
   },
   "M01": {
-   "text": "TV 대장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 보이고 돌아갈 길을 잃었다 1층 서쪽 어디쯤 알리와 달라",
-   "asr_ms": 2556
+   "text": "지휘대장 회장 여기 누리센터 박준 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다. 1층 서쪽 어디쯤 빨리 와달라.",
+   "asr_ms": 2797
   },
   "M02": {
-   "text": "한빛고조대 기만해 바닥이 거져서 다리가 기었다. 움직일 수가 없다. 이층 동쪽 사람 보내달라",
-   "asr_ms": 2258
+   "text": "한빛 구조대 기만을 바닥이 꺼져서 다리가 끼었다. 움직일 수가 없다. 2층 동쪽 사람 보내달라.",
+   "asr_ms": 2512
   },
   "M03": {
-   "text": "command, truck five, we're cut off, fires between us and the stairs, second floor, rear side, we need a way out now,",
-   "asr_ms": 2195
+   "text": "Command,Command, truck five, we're cut off, fires between us and the stairs second floor rear side we need a way out now",
+   "asr_ms": 2389
   },
   "M04": {
-   "text": "engine 21 to command. I'm down. down, something fell on me, I can't move. basement, side Charlie. send help.",
-   "asr_ms": 2189
+   "text": "Ancient 21 to command, I'm down, something fell on me, I can't move, basement, side Charlie, send help.",
+   "asr_ms": 2408
   },
   "E01": {
-   "text": "dispatch engine twenty one on scene two story wood frame residential heavy smoke showing second floor side alpha engine twenty one establishing main street command offensive strategy",
-   "asr_ms": 2621
+   "text": "Dispatch, engine 21 on scene, two story wood frame residential, heavy smoke showing second floor side alpha, engine 21 establishing main street command, offensive strategy.",
+   "asr_ms": 3022
   },
   "E02": {
-   "text": "main Street Command, truck five, we're making making entry side alpha for primary search, second floor.",
-   "asr_ms": 2056
+   "text": "Main Street Command, truck five, we're making entry side alpha for primary search, second floor.",
+   "asr_ms": 2076
   },
   "E03": {
-   "text": "command truck five victim found second floor Bravo Charlie corner bedroom unconscious adult removing via interior stairs need ALS at side alpha",
-   "asr_ms": 2455
+   "text": "command truck five victim found second floor Bravo Charlie corner bedroom unconscious adult removing via interior stairs need of ALS at side alpha",
+   "asr_ms": 2605
   },
   "E07": {
-   "text": "Mayday mayday mayday.",
-   "asr_ms": 875
+   "text": "Mayday, mayday, mayday.",
+   "asr_ms": 1620
   },
   "E04": {
-   "text": "command, engine 23, floor is soft over the basement, possible collapse side Charlie, recommend we back back out.",
-   "asr_ms": 2106
+   "text": "command, engine 23, floor is soft over the basement, possible collapse, side Charlie, recommend we we back out.",
+   "asr_ms": 2131
   },
   "E06": {
-   "text": "emergency traffic traffic, emergency traffic, all units evacuate the structure, exit side alpha, PAR to follow,",
-   "asr_ms": 2080
+   "text": "Emergency traffic. Emergency traffic. All units evacuate the structure exit side alpha power para to follow",
+   "asr_ms": 2263
   },
   "E05": {
-   "text": "command, truck five, crew is low on air, exiting side alpha. Need a relief crew to finish search on two.",
-   "asr_ms": 2307
+   "text": "command, truck five, crew is low on air, exiting side alpha, need a relief relief crew to finish search on two.",
+   "asr_ms": 2247
   },
   "E08": {
-   "text": "Command, mayday. Location, second floor, side Charlie, back bedroom by a window. Unit, engine 21. Name, firefighter Ortiz. Air, about 1000 psi. Resources, I need RIT and a ladder to the Charlie side window.",
-   "asr_ms": 2788
+   "text": "command, Mayday, location second floor side Charlie back bedroom by a window unit engine 21 name firefighter Ortiz air about 1000 PSI resources I need RIT and a ladder to the Charlie side window",
+   "asr_ms": 3540
   },
   "E09": {
-   "text": "mayday acknowledged engine 21 all units not involved in the rescue switch to tac 3 RIT deploy to side Charlie second floor window dispatch command give me a second alarm and an ALS ambulance",
-   "asr_ms": 2705
+   "text": "Mayday acknowledged. Engine 21, 21. All units, not involved in the rescue, switch to tack three. Rit deploy the side Charlie. Second floor window. Dispatch command give me a second alarm and an ALS ambulance.",
+   "asr_ms": 3453
   },
   "E10": {
-   "text": "all companies, main street command, give me a PAR.",
-   "asr_ms": 1202
+   "text": "all companies, Main Street Command, give me a par.",
+   "asr_ms": 1470
   }
  }
 }

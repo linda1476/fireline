@@ -82,7 +82,7 @@ export default function Eval() {
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          synthetic, own-voice/TTS + codec degradation, n = {show(pick(meta, "n", "n_lines") ?? 36)}
+          synthetic Gemini-TTS speech + codec degradation, n = {show(pick(meta, "n", "n_lines") ?? 36)}
           {pick(meta, "timestamp", "date", "run_at") !== undefined && ` · ${show(pick(meta, "timestamp", "date", "run_at"))}`}
           {typeof gateRaw === "string" && ` · ${gateRaw}`}
         </p>
