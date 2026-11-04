@@ -1,0 +1,32 @@
+{
+  "_note": "Units for scenario hanbit (ko) plus the English fallback roster (lang en). Aliases are used by verify.py (rapidfuzz snap). Callsign conventions follow SOP 107 / observed field format (gap_3 §2.1); no unverified '펌프1'-style suffixes.",
+  "units": [
+    {"id": "ic", "callsign": "지휘대장", "name": null, "crew": 1, "channel": "CMD", "role": "IC", "lang": "ko",
+     "label_en": "Incident Commander", "aliases": ["지휘대장", "지휘단장", "현장지휘관", "선착대장", "Command", "IC"],
+     "zone_id": "OUT-CP", "status": "OUT", "interior": false},
+    {"id": "dispatch", "callsign": "상황실", "name": null, "crew": 1, "channel": "CMD", "role": "DISPATCH", "lang": "ko",
+     "label_en": "Dispatch (119 Control)", "aliases": ["상황실", "119종합상황실", "Dispatch"],
+     "zone_id": null, "status": "OUT", "interior": false},
+    {"id": "hanbit_center", "callsign": "한빛119안전센터 팀장", "name": null, "crew": 2, "channel": "TAC", "role": "EXTERIOR", "lang": "ko",
+     "label_en": "Hanbit Station Captain (exterior)", "aliases": ["한빛119안전센터 팀장", "한빛119안전센터", "한빛센터 팀장", "한빛센터", "한빛 센터"],
+     "assignment": "exterior recon (3F windows)", "zone_id": "OUT-FRONT", "status": "OUT", "interior": false},
+    {"id": "kim", "callsign": "한빛구조대", "name": "김하늘", "crew": 3, "channel": "TAC", "role": "CREW", "lang": "ko",
+     "label_en": "FF Kim (Hanbit Rescue)", "aliases": ["한빛구조대", "한빛구조대 소방장 김하늘", "한빛구조대 김하늘", "소방장 김하늘", "김하늘", "김하늘 대원", "한빛 구조대", "Kim"],
+     "assignment": "2F-E 우선탐색", "zone_id": "OUT-FRONT", "status": "OUT", "interior": false},
+    {"id": "park", "callsign": "누리119안전센터", "name": "박준", "crew": 2, "channel": "TAC", "role": "CREW", "lang": "ko",
+     "label_en": "FF Park (Nuri Station)", "aliases": ["누리119안전센터", "누리119안전센터 소방교 박준", "누리센터 박준", "누리센터", "누리 센터", "소방교 박준", "박준", "박준 대원", "Park"],
+     "assignment": "1F-W 인명검색", "zone_id": "OUT-FRONT", "status": "OUT", "interior": false},
+    {"id": "rit", "callsign": "동부구조대", "name": null, "crew": 4, "channel": "TAC", "role": "RIT", "lang": "ko",
+     "label_en": "Dongbu Rescue (RIT)", "aliases": ["동부구조대", "신속동료구조팀", "동부 구조대", "RIT"],
+     "assignment": "RIT standby", "zone_id": "OUT-RIT", "status": "OUT", "interior": false},
+
+    {"id": "en_command", "callsign": "Main Street Command", "name": null, "crew": 1, "channel": "CMD", "role": "IC", "lang": "en",
+     "label_en": "Main Street Command", "aliases": ["Main Street Command", "Command"], "zone_id": "OUT-CP", "status": "OUT", "interior": false},
+    {"id": "en_engine21", "callsign": "Engine 21", "name": "Ortiz", "crew": 3, "channel": "TAC", "role": "CREW", "lang": "en",
+     "label_en": "Engine 21 (FF Ortiz)", "aliases": ["Engine 21", "Engine twenty-one", "Firefighter Ortiz", "Ortiz"], "zone_id": "OUT-FRONT", "status": "OUT", "interior": false},
+    {"id": "en_truck5", "callsign": "Truck 5", "name": null, "crew": 3, "channel": "TAC", "role": "CREW", "lang": "en",
+     "label_en": "Truck 5", "aliases": ["Truck 5", "Truck five"], "zone_id": "OUT-FRONT", "status": "OUT", "interior": false},
+    {"id": "en_engine23", "callsign": "Engine 23", "name": null, "crew": 3, "channel": "TAC", "role": "CREW", "lang": "en",
+     "label_en": "Engine 23", "aliases": ["Engine 23", "Engine twenty-three"], "zone_id": "OUT-FRONT", "status": "OUT", "interior": false}
+  ]
+}

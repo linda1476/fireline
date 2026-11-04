@@ -1,0 +1,59 @@
+# Eval-only utterances (not in the scenario). Labels fixed BEFORE any prompt tuning (PRODUCT_SPEC §9).
+# K01–K10: gap_3 §4 Korean lines with ○○ → 한빛/누리. M01–M04: codeword-masked distress (new wording; the triage
+# few-shots must NOT reuse these). E01–E10: gap_3 §4 English LUNAR/NIMS lines.
+# floor null = not labelled (not counted in the unit/floor metric). unit null = not in roster (not counted).
+# tag may be a list = any of them counts as correct (and none of them counts as a MAYDAY false positive).
+# MAYDAY label covers ALL traffic that is part of an ongoing 긴급탈출/mayday: the declaration, the IC's broadcast,
+# the IC's instructions to the trapped member, the acknowledgement (K08, K09, E09, L11). The triage prompt says so.
+# The eval set = these 24 + the 12 audio lines of scenario_hanbit.yaml = n 36.
+lines:
+  - {id: K01, lang: ko, speaker_hint: hanbit_center, expect: {tag: ROUTINE, strategy_declared: OFFENSIVE, unit: hanbit_center, floor: null, critical_terms: []},
+     text: "상황실, 여기 한빛119안전센터 팀장. 현장 도착. 지상 3층 철골조 도장공장, 2층 창문 흑연 분출. 구조대상자 미확인. 선착대장 지휘권 선언, 지휘위치 정문 앞. 공격전략. 구조대 1대 추가 요청."}
+  - {id: K02, lang: ko, speaker_hint: kim, expect: {tag: ROUTINE, status_change: ENTERING, unit: kim, floor: 2, critical_terms: []},
+     text: "지휘대장, 여기 한빛구조대 2팀장. 정면 출입구로 3명 진입, 발화층 2층 우선탐색 실시하겠음."}
+  - {id: K03, lang: ko, speaker_hint: kim, expect: {tag: VICTIM_FOUND, victims_state: EXTRACTING, unit: kim, floor: 2, critical_terms: []},
+     text: "지휘대장, 여기 한빛구조대 2팀장. 2층 계단 우측 사무실에서 구조대상자 1명 발견, 의식 없음. 정면 계단으로 구출 중. 구급대 정문 대기 바람."}
+  - {id: K04, lang: ko, speaker_hint: hanbit_center, expect: {tag: DANGER, unit: hanbit_center, floor: 2, critical_terms: ["인화물질"]},
+     text: "지휘대장, 여기 한빛119안전센터 팀장. 2층 천장 처짐, 붕괴 우려. 신나 드럼 다수, 인화물질 확인. 내부 진입 대원 위치 확인 바람."}
+  - {id: K05, lang: ko, speaker_hint: park, expect: {tag: HELP_NEEDED, unit: park, floor: null, zone: ROOF, critical_terms: []},
+     text: "지휘대장, 여기 누리119안전센터 팀장. 옥상 3명 대기 중, 옥상은 안전한데 공기 용량이 다 돼서 용기 3개 필요함."}
+  - {id: K06, lang: ko, speaker_hint: ic, expect: {tag: DANGER, unit: ic, floor: null, critical_terms: []},
+     text: "전 출동대, 여기 지휘대장. 전 대원 철수, 전 대원 철수. 건물 높이 1.5배 밖으로 철수 후 단위지휘관별 인원 점검 보고."}
+  - {id: K07, lang: ko, speaker_hint: kim, expect: {tag: MAYDAY, distress_what: [TRAPPED], unit: kim, floor: 2, critical_terms: ["긴급탈출"]},
+     text: "긴급탈출, 긴급탈출, 긴급탈출. 여기 한빛구조대 소방장 김하늘. 대원고립, 천장 붕괴로 퇴로 차단. 2층 동쪽 끝 창고 선반 옆, 올라온 계단에서 약 15미터. 공기잔량 절반 이하, 사다리와 공기용기 필요."}
+  - {id: K08, lang: ko, speaker_hint: ic, expect: {tag: MAYDAY, unit: ic, floor: 2, critical_terms: ["긴급탈출", "무선 침묵", "신속동료구조팀"]},
+     text: "전 출동대 무선 침묵. 여기 지휘대장. 긴급탈출 발생. 한빛구조대 김하늘 대원, 대원고립, 2층 동쪽 끝. 요청 자원 사다리, 공기용기. 신속동료구조팀 동측 창문으로 투입."}
+  - {id: K09, lang: ko, speaker_hint: ic, expect: {tag: MAYDAY, unit: ic, floor: null, critical_terms: ["공기잔량", "인명구조경보기"]},
+     text: "김하늘 대원, 여기 지휘대장. 침착하게 호흡 조절하고 공기잔량 보고할 것. 무전 유지, 교신하지 않을 때 인명구조경보기 작동."}
+  - {id: K10, lang: ko, speaker_hint: null, expect: {tag: MAYDAY, distress_what: [FALL, INJURY, OTHER, UNKNOWN], unit: null, floor: 1, critical_terms: ["맨다운"]},
+     text: "상황실, 여기 누리구조대. 맨다운 발생, 맨다운 발생. 1층 후면 출입구 안쪽 3미터, 대원 1명 쓰러짐. 구급대 후면으로 요청."}
+
+  - {id: M01, lang: ko, speaker_hint: park, expect: {tag: MAYDAY, distress_what: [LOST, TRAPPED], unit: park, floor: 1, codeword_masked: true, critical_terms: []},
+     text: "지휘대장… 여기 누리센터 박준… 연기 때문에 앞이 안 보이고 돌아갈 길을 잃었다. 1층 서쪽 어디쯤. 빨리 와 달라."}
+  - {id: M02, lang: ko, speaker_hint: kim, expect: {tag: MAYDAY, distress_what: [TRAPPED, INJURY, FALL], unit: kim, floor: 2, codeword_masked: true, critical_terms: []},
+     text: "한빛구조대 김하늘. 바닥이 꺼져서 다리가 끼었다, 움직일 수가 없다. 2층 동쪽. 사람 보내 달라."}
+  - {id: M03, lang: en, speaker_hint: en_truck5, expect: {tag: MAYDAY, distress_what: [TRAPPED, LOST], unit: en_truck5, floor: 2, codeword_masked: true, critical_terms: []},
+     text: "Command, Truck 5… we're cut off, fire's between us and the stairs. Second floor, rear side. We need a way out now."}
+  - {id: M04, lang: en, speaker_hint: en_engine21, expect: {tag: MAYDAY, distress_what: [TRAPPED, INJURY, FALL], unit: en_engine21, floor: null, codeword_masked: true, critical_terms: []},
+     text: "Engine 21 to Command. I'm down, something fell on me, I can't move. Basement, Side Charlie. Send help."}
+
+  - {id: E01, lang: en, speaker_hint: en_engine21, expect: {tag: ROUTINE, strategy_declared: OFFENSIVE, unit: en_engine21, floor: null, critical_terms: []},
+     text: "Dispatch, Engine 21 on scene, two-story wood-frame residential, heavy smoke showing second floor Side Alpha. Engine 21 establishing Main Street Command, offensive strategy."}
+  - {id: E02, lang: en, speaker_hint: en_truck5, expect: {tag: ROUTINE, status_change: ENTERING, unit: en_truck5, floor: 2, critical_terms: []},
+     text: "Main Street Command, Truck 5, we're making entry Side Alpha for primary search, second floor."}
+  - {id: E03, lang: en, speaker_hint: en_truck5, expect: {tag: VICTIM_FOUND, victims_state: EXTRACTING, unit: en_truck5, floor: 2, critical_terms: []},
+     text: "Command, Truck 5, victim found, second floor Bravo-Charlie corner bedroom, unconscious adult, removing via interior stairs. Need ALS at Side Alpha."}
+  - {id: E04, lang: en, speaker_hint: en_engine23, expect: {tag: DANGER, unit: en_engine23, floor: null, critical_terms: []},
+     text: "Command, Engine 23, floor is soft over the basement, possible collapse Side Charlie. Recommend we back out."}
+  - {id: E05, lang: en, speaker_hint: en_truck5, expect: {tag: HELP_NEEDED, status_change: [LOW_AIR, EXITING], unit: en_truck5, floor: null, critical_terms: []},
+     text: "Command, Truck 5, crew is low on air, exiting Side Alpha. Need a relief crew to finish search on two."}
+  - {id: E06, lang: en, speaker_hint: en_command, expect: {tag: DANGER, unit: null, floor: null, critical_terms: []},
+     text: "Emergency traffic, emergency traffic. All units evacuate the structure, exit Side Alpha. PAR to follow."}
+  - {id: E07, lang: en, speaker_hint: null, expect: {tag: MAYDAY, unit: null, floor: null, critical_terms: ["Mayday"]},
+     text: "Mayday, Mayday, Mayday."}
+  - {id: E08, lang: en, speaker_hint: en_engine21, expect: {tag: MAYDAY, unit: en_engine21, floor: 2, critical_terms: ["Mayday"]},
+     text: "Command, Mayday. Location: second floor, Side Charlie, back bedroom by a window. Unit: Engine 21. Name: Firefighter Ortiz. Air: about one thousand psi. Resources: I need RIT and a ladder to the Charlie-side window."}
+  - {id: E09, lang: en, speaker_hint: en_command, expect: {tag: MAYDAY, unit: en_command, floor: null, critical_terms: ["Mayday"]},
+     text: "Mayday acknowledged, Engine 21. All units not involved in the rescue switch to Tac 3. RIT deploy to Side Charlie, second floor window. Dispatch, Command, give me a second alarm and an ALS ambulance."}
+  - {id: E10, lang: en, speaker_hint: en_command, expect: {tag: ROUTINE, unit: en_command, floor: null, critical_terms: []},
+     text: "All companies, Main Street Command, give me a PAR."}

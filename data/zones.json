@@ -1,0 +1,37 @@
+{
+  "_note": "Site frame in metres: building footprint x 0..20 (west→east), y 0..12 (front/south → rear/north). Indoor zones share the footprint per floor; outdoor zones sit around it. Collapse ring = 1.5 × building height (SOP 205 §3.5).",
+  "site": {"xmin": -16, "xmax": 36, "ymin": -14, "ymax": 26},
+  "building": {"floors": 3, "height_m": 12, "footprint": [[0, 0], [20, 0], [20, 12], [0, 12]],
+               "collapse_ring": {"center": [10, 6], "radius_m": 18, "label_ko": "붕괴위험 반경 1.5H (SOP 205)", "label_en": "Collapse zone 1.5× height (SOP 205)"}},
+  "zones": [
+    {"id": "1F-W", "floor": 1, "kind": "indoor", "label_ko": "1층 서측", "label_en": "1F West", "polygon": [[0, 0], [10, 0], [10, 12], [0, 12]],
+     "aliases": ["1층 서측", "1층 서쪽", "1층 서쪽 어디쯤", "1층", "first floor west"]},
+    {"id": "1F-E", "floor": 1, "kind": "indoor", "label_ko": "1층 동측", "label_en": "1F East", "polygon": [[10, 0], [20, 0], [20, 12], [10, 12]],
+     "aliases": ["1층 동측", "1층 동쪽", "1층 후면", "1층 후면 출입구 안쪽", "first floor east"]},
+    {"id": "2F-W", "floor": 2, "kind": "indoor", "label_ko": "2층 서측", "label_en": "2F West", "polygon": [[0, 0], [8, 0], [8, 12], [0, 12]],
+     "aliases": ["2층 서측", "2층 서쪽", "second floor west"]},
+    {"id": "2F-STAIR", "floor": 2, "kind": "indoor", "label_ko": "정면 계단", "label_en": "Front stair", "polygon": [[8, 0], [10, 0], [10, 3], [8, 3]],
+     "aliases": ["정면 계단", "계단", "올라온 계단", "interior stairs", "stairs"]},
+    {"id": "2F-E", "floor": 2, "kind": "indoor", "label_ko": "2층 동측", "label_en": "2F East", "polygon": [[10, 0], [20, 0], [20, 12], [10, 12]],
+     "aliases": ["2층 동측", "2층 동쪽", "2층", "발화층 2층", "second floor east", "second floor"]},
+    {"id": "2F-E-OFFICE", "floor": 2, "kind": "indoor", "parent": "2F-E", "label_ko": "2층 계단 우측 사무실", "label_en": "2F office (right of stair)", "polygon": [[10, 0], [14, 0], [14, 5], [10, 5]],
+     "aliases": ["계단 우측 사무실", "2층 계단 우측 사무실", "사무실", "office"]},
+    {"id": "2F-E-STORE", "floor": 2, "kind": "indoor", "parent": "2F-E", "label_ko": "2층 동쪽 창고", "label_en": "2F east storeroom", "polygon": [[15, 0], [20, 0], [20, 12], [15, 12]],
+     "aliases": ["동쪽 창고", "2층 동쪽 창고", "2층 동쪽 창고 쪽", "창고", "동쪽 끝 창고", "2층 동쪽 끝", "창고 선반 옆", "storeroom"]},
+    {"id": "3F", "floor": 3, "kind": "indoor", "label_ko": "3층", "label_en": "3F", "polygon": [[0, 0], [20, 0], [20, 12], [0, 12]],
+     "aliases": ["3층", "3층 창문", "third floor"]},
+    {"id": "ROOF", "floor": 4, "kind": "indoor", "label_ko": "옥상", "label_en": "Roof", "polygon": [[0, 0], [20, 0], [20, 12], [0, 12]],
+     "aliases": ["옥상", "roof"]},
+
+    {"id": "OUT-FRONT", "floor": null, "kind": "outdoor", "label_ko": "정면 출입구", "label_en": "Front entrance", "polygon": [[8, -3], [12, -3], [12, 0], [8, 0]],
+     "aliases": ["정면 출입구", "정면", "정문", "정문 앞", "Side Alpha", "front entrance"]},
+    {"id": "OUT-EAST", "floor": null, "kind": "outdoor", "label_ko": "동측 창문", "label_en": "East windows", "polygon": [[20, 3], [23, 3], [23, 9], [20, 9]],
+     "aliases": ["동측 창문", "동쪽 창문", "동측", "Side Charlie", "east window"]},
+    {"id": "OUT-REAR", "floor": null, "kind": "outdoor", "label_ko": "후면 출입구", "label_en": "Rear entrance", "polygon": [[8, 12], [12, 12], [12, 15], [8, 15]],
+     "aliases": ["후면 출입구", "후면", "rear"]},
+    {"id": "OUT-CP", "floor": null, "kind": "outdoor", "label_ko": "지휘소 (정문 앞)", "label_en": "Command post", "polygon": [[4, -11], [9, -11], [9, -8], [4, -8]],
+     "aliases": ["지휘소", "지휘위치", "현장지휘소", "command post"]},
+    {"id": "OUT-RIT", "floor": null, "kind": "outdoor", "label_ko": "RIT 대기", "label_en": "RIT staging", "polygon": [[13, -11], [18, -11], [18, -8], [13, -8]],
+     "aliases": ["RIT 대기", "신속동료구조팀 대기", "staging"]}
+  ]
+}

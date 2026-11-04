@@ -1,0 +1,156 @@
+# Scenario "한빛 도장공장" — synthetic, modelled on the Bucheon 2026 / Bridgeport 2010 patterns.
+# Source of truth for the replay (server/scenario.py) and for the scenario part of the eval (eval/run_eval.py).
+# t = seconds after "Run". kind: radio (channel WAV) | ptt (crew hold TALK, + button) | agent (no audio; rule-driven).
+# audio files: data/audio/clean/<id>.wav (own voice, 16 kHz mono) and data/audio/radio/<id>.wav (AMR-NB degraded).
+# expect.* are the eval labels (written before any prompt tuning). floor null = not labelled / not counted.
+id: hanbit
+name_ko: 한빛 도장공장 화재
+name_en: Hanbit paint factory fire
+lang: ko
+building:
+  floors: 3
+  height_m: 12
+  footprint_m: [20, 12]
+  kind_ko: 지상 3층 철골조 도장공장
+  kind_en: 3-storey steel-frame paint factory
+strategy_initial: NONE
+units: [ic, dispatch, hanbit_center, kim, park, rit]
+
+lines:
+  - id: L01
+    t: 0
+    channel: CMD
+    unit: ic
+    kind: radio
+    text_ko: "전 출동대, 여기 지휘대장. 지휘권 선언, 지휘위치 정문 앞. 3층 도장공장 화재, 공격전략. 한빛구조대 2층 동측 우선탐색, 누리센터 1층 서측 인명검색."
+    text_en: "All units, this is Command. Assuming command, command post at the front gate. Three-storey paint factory fire, offensive strategy. Hanbit Rescue: primary search 2F east. Nuri Station: search 1F west."
+    expect: {tag: ROUTINE, strategy_declared: OFFENSIVE, status_change: NONE, unit: ic, floor: null, critical_terms: []}
+    effects: "strategy=OFFENSIVE; kim.assignment=2F-E; park.assignment=1F-W; no card"
+
+  - id: L02
+    t: 12
+    channel: TAC
+    unit: kim
+    kind: radio
+    text_ko: "지휘대장, 여기 한빛구조대 소방장 김하늘. 정면 출입구로 3명 진입, 2층 동측 우선탐색 실시."
+    text_en: "Command, Hanbit Rescue, Kim. Three entering through the front entrance, starting primary search on 2F east."
+    expect: {tag: ROUTINE, status_change: ENTERING, unit: kim, floor: 2, zone: 2F-E, critical_terms: []}
+    effects: "kim: IN, zone 2F-E, last_heard; held for park"
+
+  - id: L03
+    t: 22
+    channel: TAC
+    unit: park
+    kind: radio
+    text_ko: "지휘대장, 여기 누리119안전센터 소방교 박준. 1층 서측 진입, 인명검색 시작."
+    text_en: "Command, Nuri Station, Park. Entering 1F west, starting search."
+    expect: {tag: ROUTINE, status_change: ENTERING, unit: park, floor: 1, zone: 1F-W, critical_terms: []}
+    effects: "park: IN, zone 1F-W"
+
+  - id: L04
+    t: 34
+    channel: TAC
+    unit: hanbit_center
+    kind: radio
+    text_ko: "지휘대장, 여기 한빛119안전센터 팀장. 정면에서 3층 창문으로 확인, 도장공장 신나 드럼 다수, 인화물질 확인. 2층 동측 천장으로 연소 확대 우려."
+    text_en: "Command, Hanbit Station captain. From the front, through the 3F windows: many thinner drums, flammables confirmed. Fire likely to spread into the 2F east ceiling."
+    expect: {tag: DANGER, status_change: NONE, unit: hanbit_center, floor: 3, zone: 3F, critical_terms: ["인화물질"]}
+    effects: "DANGER card; R3 → CONFIRM_STRATEGY proposal; agent send_brief(kim, P1, sector 2F-E) + hold(park)"
+
+  - id: L05
+    t: 46
+    channel: CMD
+    unit: ic
+    kind: radio
+    text_ko: "상황실, 여기 지휘대장. 대응 1단계 발령 요청, 펌프차 2대 추가."
+    text_en: "Dispatch, Command. Requesting response level 1, two more engines."
+    expect: {tag: ROUTINE, status_change: NONE, unit: ic, floor: null, critical_terms: []}
+    effects: "held for all crews"
+
+  - id: L06
+    t: 56
+    channel: PTT
+    unit: kim
+    kind: ptt
+    button: VICTIM_HERE
+    text_ko: "2층 계단 우측 사무실 구조대상자 1명, 정면 계단으로 구출 중."
+    text_en: "One victim, 2F office right of the stair, extracting via the front stair."
+    expect: {tag: VICTIM_FOUND, victims_state: EXTRACTING, unit: kim, floor: 2, zone: 2F-E-OFFICE, critical_terms: []}
+    effects: "victim pin 2F-E-OFFICE; VICTIM_FOUND card (no R4: extracting); brief to hanbit_center at OUT-FRONT"
+
+  - id: L07
+    t: 68
+    channel: TAC
+    unit: park
+    kind: radio
+    text_ko: "지휘대장, 여기 누리센터 박준. 1층 서측 검색 중, 이상 없음."
+    text_en: "Command, Nuri, Park. Searching 1F west, nothing to report."
+    expect: {tag: ROUTINE, status_change: OK, unit: park, floor: 1, zone: 1F-W, critical_terms: []}
+    effects: "held for kim; park last_heard = 68 → R2 fires at ~128"
+
+  - id: L08
+    t: 78
+    channel: TAC
+    unit: kim
+    kind: radio
+    text_ko: "지휘대장… 한빛구조대 김하늘… 천장 무너져서 출구를 못 찾겠다. 2층 동쪽 창고 쪽. 공기 얼마 안 남았다."
+    text_en: "Command… Hanbit Rescue, Kim… the ceiling came down, I can't find the way out. 2F east, storeroom side. Not much air left."
+    expect: {tag: MAYDAY, distress_what: [TRAPPED, LOST], unit: kim, floor: 2, zone: 2F-E-STORE, codeword_masked: true, critical_terms: []}
+    effects: "MAYDAY card on top, needs missing; agent request_missing_field(kim, needs) + escalate_to_ic; R1 timer starts"
+
+  - id: L09
+    t: 78.5
+    channel: CMD
+    unit: ic
+    kind: radio
+    text_ko: "상황실, 여기 지휘대장. 추가 펌프차 정문 쪽으로 배치 바람."
+    text_en: "Dispatch, Command. Stage the additional engines at the front gate."
+    expect: {tag: ROUTINE, status_change: NONE, unit: ic, floor: null, critical_terms: []}
+    effects: "the Bridgeport overlap: IC talking on CMD while L08 lands on TAC"
+
+  - id: L10
+    t: 92
+    channel: TAC
+    unit: kim
+    kind: radio
+    text_ko: "사다리랑 공기용기 필요. 동측 창문 쪽으로 이동 중."
+    text_en: "Need a ladder and an air cylinder. Moving toward the east windows."
+    expect: {tag: [HELP_NEEDED, MAYDAY], unit: kim, floor: null, zone: OUT-EAST, critical_terms: []}
+    effects: "context-free this line is MAYDAY-or-HELP_NEEDED (both accepted in eval); merged into the MAYDAY card (needs filled); R1 escalates at 88 s if unacked; IC ACK; agent propose_order(RADIO_SILENCE) + propose_order(RIT_DEPLOY, rit, 동측 창문)"
+
+  - id: L11
+    t: 110
+    channel: CMD
+    unit: ic
+    kind: radio
+    text_ko: "전 출동대 무선 침묵. 긴급탈출 발생, 한빛구조대 김하늘, 2층 동쪽 창고. 요청 자원 사다리, 공기용기. 신속동료구조팀 동측 창문 투입."
+    text_en: "All units, radio silence. Emergency: Hanbit Rescue, Kim, 2F east storeroom. Resources requested: ladder, air cylinder. RIT deploy through the east windows."
+    expect: {tag: MAYDAY, unit: ic, floor: 2, zone: 2F-E-STORE, critical_terms: ["긴급탈출", "무선 침묵"]}
+    effects: "deduplicated into the existing MAYDAY card (same unit+zone within window); rit → 2F-E; P0 brief to all"
+
+  - id: L12
+    t: 128
+    channel: TAC
+    unit: park
+    kind: agent
+    text_ko: "(에이전트) 박준 60초 무응답 → ping ×3 (8초 간격) → 3회 무응답 = 긴급탈출 상황 (SOP 109 §1.1)"
+    text_en: "(agent) Park silent 60 s → ping ×3 (8 s apart) → 3 unanswered = emergency per SOP 109 §1.1"
+    expect: {tag: RULE, rule: R2, unit: park, zone: 1F-W}
+    effects: "RULE card (MAYDAY priority) 'park: 3회 무응답 · last heard 1:08 · 1F-W'"
+
+  - id: L13
+    t: 155
+    channel: TAC
+    unit: park
+    kind: radio
+    text_ko: "지휘대장, 여기 누리센터 박준. 1층 서측, 통신 불량 구역이었음, 이상 없음."
+    text_en: "Command, Nuri, Park. 1F west, we were in a radio dead spot, all OK."
+    expect: {tag: ROUTINE, status_change: OK, unit: park, floor: 1, zone: 1F-W, critical_terms: []}
+    effects: "R2 card auto-resolves 'found OK', kept in log"
+
+end_state:
+  transmissions: 12
+  cards_expected: [DANGER(L04), VICTIM_FOUND(L06), MAYDAY(L08+L10+L11), RULE R2(L12 → resolved by L13)]
+  proposals_expected: [CONFIRM_STRATEGY(R3), RADIO_SILENCE, RIT_DEPLOY]
+  unacked: 0
+  note: "heard N of M counters are computed live, never hard-coded"

@@ -1,0 +1,24 @@
+{
+  "_source": "research/gap_3.md section 3 (58 terms: SOP 101/107/109/202/204/205, Pyeongtaek SBS transcript, Bucheon Wikitree, Ames FD SOG 3.2.7, USFA) + roster callsigns + zone labels",
+  "sop_terms_ko": [
+    "긴급탈출", "대원고립", "대원추락", "대원부상", "대원실종", "붕괴위험", "가스누출", "맨다운", "메이데이",
+    "무선 침묵", "비상통신 해제", "복명복창", "공기잔량", "잔압", "공기호흡기", "용기", "인명구조경보기",
+    "신속동료구조팀", "구조대상자", "요구조자", "사상자", "인명검색", "우선탐색", "교차탐색", "지휘권 선언",
+    "선착대장", "지휘대장", "상황실", "지휘망", "작전망", "전진지휘소", "철수", "진입", "낙하물", "인화물질", "위험물"
+  ],
+  "sop_terms_en": [
+    "Mayday", "emergency traffic", "LUNAR", "RIT", "rapid intervention team", "PAR", "personnel accountability report",
+    "PASS", "air supply", "low air", "ALS ambulance", "Command", "Engine", "Truck", "Battalion", "Division",
+    "primary search", "all clear", "victim found", "evacuate", "collapse", "Side Alpha", "Side Bravo", "Side Charlie",
+    "Side Delta", "defensive", "offensive"
+  ],
+  "roster_terms": [
+    "한빛구조대", "김하늘", "소방장 김하늘", "누리119안전센터", "누리센터", "박준", "소방교 박준",
+    "한빛119안전센터", "한빛센터 팀장", "동부구조대", "지휘대장", "상황실",
+    "Engine 21", "Truck 5", "Engine 23", "Main Street Command", "Firefighter Ortiz"
+  ],
+  "zone_terms": [
+    "1층 서측", "1층 동측", "2층 동측", "2층 서측", "2층 동쪽 창고", "계단 우측 사무실", "정면 계단", "3층", "옥상",
+    "정면 출입구", "동측 창문", "후면 출입구", "정문", "도장공장", "신나 드럼"
+  ]
+}
