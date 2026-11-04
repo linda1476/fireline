@@ -8,7 +8,7 @@ two-sentence earpiece brief that goes only to the firefighters it affects.
 
 Built solo in one night for the **Meta Global AI Developer Hackathon 2026** ("Build for Your World").
 
-**Video (3 min):** https://github.com/linda1476/fireline/releases/tag/v1.0 (`earshot.mp4`) ·
+**Video (3 min):** [video/earshot.mp4](https://github.com/linda1476/fireline/blob/main/video/earshot.mp4) (plays on GitHub; also on the [v1.0 release](https://github.com/linda1476/fireline/releases/tag/v1.0)) ·
 **Meta models on the core path:** `muse-voice-transcribe-1.0` (realtime ASR on every channel + PTT) and `muse-spark-1.3`
 (strict-JSON triage + Responses-API routing agent) · **Eval:** [eval/results.md](eval/results.md), n = 36, MAYDAY recall
 13/13 on codec-degraded audio · **Try it without a key:** REPLAY of a recorded live run (see Run it).
