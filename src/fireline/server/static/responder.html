@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0f14">
+  <title>Fireline Responder</title>
+  <script>
+    // Served at /responder/{id}: assets live under /static/. When the file is opened
+    // directly (file://, ?mock=1 dev harness) the assets sit next to this page.
+    (function () {
+      var prefix = location.protocol === 'file:' ? '' : '/static/';
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = prefix + 'responder.css';
+      document.head.appendChild(link);
+      window.__FIRELINE_STATIC_PREFIX__ = prefix;
+    })();
+  </script>
+</head>
+<body>
+  <div id="app" class="app">
+
+    <!-- (1) STATUS BANNER -->
+    <header id="banner" class="banner status-ok">
+      <div class="banner-row">
+        <div class="callsign mono" id="callsign">----</div>
+        <div class="status-pill mono" id="statusPill">UNKNOWN</div>
+      </div>
+      <div class="banner-row sub">
+        <div class="unit" id="unit">&nbsp;</div>
+        <div class="air mono" id="air">AIR --</div>
+      </div>
+      <div class="banner-row sub">
+        <div class="loc" id="loc">&nbsp;</div>
+        <div class="conn mono" id="conn"><span class="dot"></span><span id="connText">OFFLINE</span></div>
+      </div>
+    </header>
+
+    <!-- (2) BRIEFING -->
+    <section id="briefing" class="briefing urgency-normal" aria-live="polite">
+      <div class="urgency-bar"></div>
+      <div class="briefing-body">
+        <div class="briefing-head">
+          <span class="briefing-label mono" id="briefingLabel">BRIEFING</span>
+          <span class="briefing-ago mono" id="briefingAgo"></span>
+          <button type="button" class="unread mono" id="unreadBtn" hidden>0 UNREAD</button>
+          <button type="button" class="mute" id="muteBtn" aria-label="Mute audio" title="Mute">&#128266;</button>
+        </div>
+        <div class="briefing-text" id="briefingText">Waiting for command&hellip;</div>
+      </div>
+    </section>
+
+    <!-- (3) MINI MAP -->
+    <section id="mapWrap" class="map-wrap">
+      <div class="map-head mono">
+        <span id="mapFloor">FLOOR -</span>
+        <span id="mapHint"></span>
+      </div>
+      <svg id="map" class="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 336 196" preserveAspectRatio="xMidYMid meet"></svg>
+
+      <!-- helmet-cam result overlay -->
+      <div id="photoOverlay" class="photo-overlay" hidden>
+        <canvas id="photoCanvas" width="320" height="180"></canvas>
+        <div class="photo-caption mono" id="photoCaption"></div>
+      </div>
+
+      <div id="toasts" class="toasts"></div>
+    </section>
+
+    <!-- HELMET CAM bar -->
+    <section class="cam-bar">
+      <button type="button" class="btn btn-cam" id="camBtn">
+        <span class="btn-icon">&#9679;</span> HELMET CAM
+      </button>
+      <div class="samples" id="samples" aria-label="Sample frames">
+        <button type="button" class="sample" data-sample="smoky_room_victim" title="smoky_room_victim"><img alt="smoky room"></button>
+        <button type="button" class="sample" data-sample="corridor_clear" title="corridor_clear"><img alt="corridor clear"></button>
+        <button type="button" class="sample" data-sample="two_victims_404" title="two_victims_404"><img alt="two victims 404"></button>
+      </div>
+      <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
+    </section>
+
+    <!-- (4) BUTTON ROW -->
+    <section class="buttons" id="buttons">
+      <button type="button" class="btn btn-mark" id="btnMark">MARK VICTIM</button>
+      <button type="button" class="btn btn-help" id="btnHelp">NEED HELP</button>
+      <button type="button" class="btn btn-out" id="btnOut">VICTIM OUT</button>
+      <button type="button" class="btn btn-ok" id="btnOk">I'M OK</button>
+    </section>
+    <section class="buttons mark-buttons" id="markButtons" hidden>
+      <button type="button" class="btn btn-confirm" id="btnConfirm">CONFIRM HERE</button>
+      <button type="button" class="btn btn-cancel" id="btnCancel">CANCEL</button>
+    </section>
+
+  </div>
+
+  <!-- one-time audio unlock -->
+  <div id="audioOverlay" class="audio-overlay">
+    <button type="button" class="btn btn-audio" id="audioBtn">
+      <span class="big">&#128264;</span>
+      ENABLE AUDIO
+      <span class="small">Briefings are read aloud in your earpiece</span>
+    </button>
+    <button type="button" class="btn btn-skip" id="audioSkip">CONTINUE SILENT</button>
+  </div>
+
+  <script>
+    (function () {
+      var s = document.createElement('script');
+      s.src = window.__FIRELINE_STATIC_PREFIX__ + 'responder.js';
+      s.defer = true;
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>

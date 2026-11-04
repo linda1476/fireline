@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fireline Command</title>
+  <link rel="stylesheet" href="command.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span class="logo">FIRELINE</span>
+      <span id="incident" class="incident" title="">Incident</span>
+    </div>
+    <div id="clock" class="clock mono">--:--:--</div>
+    <div class="badges">
+      <span id="badge-spark" class="badge unknown" title="Muse Spark (triage + briefer)">SPARK ?</span>
+      <span id="badge-asr" class="badge unknown" title="Muse Voice Transcribe">ASR ?</span>
+      <span id="badge-sam" class="badge unknown" title="SAM 3.1 (helmet cam)">SAM ?</span>
+      <span id="conn" class="badge conn off" title="WebSocket">WS</span>
+    </div>
+    <div class="actions">
+      <button id="btn-demo-text" class="btn" title="POST /api/demo/run {mode:'text'}">DEMO: TEXT</button>
+      <button id="btn-demo-audio" class="btn" title="POST /api/demo/run {mode:'audio'}">DEMO: AUDIO</button>
+      <button id="btn-reset" class="btn danger-outline" title="POST /api/demo/reset">RESET</button>
+      <span class="sep"></span>
+      <label class="lbl" for="mic-speaker">Speaker</label>
+      <select id="mic-speaker" class="sel mono"></select>
+      <button id="btn-mic" class="btn mic" title="PC microphone -> realtime ASR">MIC</button>
+    </div>
+  </header>
+
+  <main id="grid">
+    <aside id="queue-col" class="panel">
+      <h2>PRIORITY QUEUE <span id="queue-count" class="count mono"></span></h2>
+      <div id="queue" class="scroll"></div>
+    </aside>
+
+    <section id="map-col" class="panel">
+      <div class="map-head">
+        <div id="floor-tabs" class="floor-tabs"></div>
+        <button id="btn-auto" class="btn tiny on" title="Auto-switch map to the floor of the newest delta">AUTO</button>
+      </div>
+      <div class="map-wrap">
+        <svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div id="legend" class="legend"></div>
+      <div id="ticker" class="ticker mono"><span class="speaker"></span><span class="text dim">waiting for radio traffic…</span></div>
+      <form id="inject" class="inject" autocomplete="off">
+        <label for="inject-speaker" class="lbl">Inject radio line as</label>
+        <select id="inject-speaker" class="sel mono"></select>
+        <input id="inject-text" type="text" placeholder="Command, Engine 1 … (Enter to send)" spellcheck="false">
+        <button id="btn-inject" class="btn primary" type="submit">Send</button>
+      </form>
+    </section>
+
+    <aside id="right-col">
+      <section id="responders-panel" class="panel">
+        <h2>RESPONDERS</h2>
+        <div class="scroll">
+          <table id="responders" class="roster">
+            <colgroup><col class="c-call"><col class="c-name"><col class="c-unit"><col class="c-zone"><col class="c-status"><col class="c-air"></colgroup>
+            <thead><tr><th>Call</th><th>Name</th><th>Unit</th><th>Floor / zone</th><th>Status</th><th>Air</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="briefings-panel" class="panel">
+        <h2>BRIEFINGS <span id="briefing-count" class="count mono"></span></h2>
+        <div id="briefings" class="scroll"></div>
+      </section>
+      <section id="assignments-panel" class="panel">
+        <h2>ASSIGNMENTS <span id="assignment-count" class="count mono"></span></h2>
+        <div id="assignments" class="scroll"></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer id="timeline-bar">
+    <span class="tl-label">TIMELINE</span>
+    <div id="timeline" class="timeline"></div>
+  </footer>
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="command.js"></script>
+</body>
+</html>

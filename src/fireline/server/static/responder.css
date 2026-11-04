@@ -1,0 +1,271 @@
+/* Fireline responder clip-on display — 360x640 target, dark tactical theme. */
+
+:root {
+  --bg: #0b0f14;
+  --panel: #121820;
+  --panel-2: #0f141b;
+  --text: #e6edf3;
+  --muted: #8b98a8;
+  --line: #1f2a36;
+
+  --tag-danger: #ff3b3b;
+  --tag-victim: #ffb020;
+  --tag-help: #4f9cff;
+  --tag-status: #6c7a89;
+
+  --st-ok: #3ddc84;
+  --st-danger: #ff3b3b;
+  --st-help: #4f9cff;
+  --st-evac: #ffb020;
+  --st-unknown: #6c7a89;
+
+  --zone-room: #1b2430;
+  --zone-corridor: #202a36;
+  --zone-stair: #2a3442;
+  --zone-lobby: #1f2a38;
+  --zone-outdoor: #10171f;
+
+  --mono: "Consolas", "SF Mono", "Menlo", "Roboto Mono", "DejaVu Sans Mono", monospace;
+  --sans: "Segoe UI", "Inter", "Roboto", "Helvetica Neue", Arial, sans-serif;
+
+  --tap: 64px;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  height: 100%;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.mono { font-family: var(--mono); }
+
+.app {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 6px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 6px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------------- banner */
+.banner {
+  background: var(--panel);
+  border-radius: var(--radius);
+  border-left: 10px solid var(--st-unknown);
+  padding: 8px 10px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.banner-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.banner-row.sub { font-size: 15px; color: var(--muted); }
+.callsign { font-size: 34px; font-weight: 800; letter-spacing: 1px; line-height: 1; }
+.status-pill {
+  font-size: 16px; font-weight: 800; letter-spacing: 1px;
+  padding: 6px 10px; border-radius: 8px; color: #0b0f14;
+  background: var(--st-unknown);
+}
+.unit { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.air { font-size: 20px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.air.low { color: var(--tag-victim); }
+.air.critical { color: var(--tag-danger); animation: pulse 1s infinite; }
+.loc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conn { font-size: 12px; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.conn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--st-unknown); display: inline-block; }
+.conn.live .dot { background: var(--st-ok); }
+.conn.mock .dot { background: var(--tag-victim); }
+.conn.reconnecting .dot { background: var(--tag-danger); animation: pulse 0.8s infinite; }
+
+.banner.status-ok        { border-left-color: var(--st-ok); }
+.banner.status-ok .status-pill        { background: var(--st-ok); }
+.banner.status-indanger  { border-left-color: var(--st-danger); animation: banner-pulse 1s infinite; }
+.banner.status-indanger .status-pill  { background: var(--st-danger); color: #fff; animation: pulse 1s infinite; }
+.banner.status-needshelp { border-left-color: var(--st-help); }
+.banner.status-needshelp .status-pill { background: var(--st-help); }
+.banner.status-evacuating{ border-left-color: var(--st-evac); }
+.banner.status-evacuating .status-pill{ background: var(--st-evac); }
+.banner.status-unknown   { border-left-color: var(--st-unknown); }
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes banner-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,59,59,0); }
+  50%     { box-shadow: 0 0 0 4px rgba(255,59,59,0.45); }
+}
+
+/* -------------------------------------------------------------- briefing */
+.briefing {
+  background: var(--panel);
+  border-radius: var(--radius);
+  display: flex;
+  min-height: 118px;
+  overflow: hidden;
+}
+.urgency-bar { width: 10px; flex: 0 0 10px; background: var(--tag-help); }
+.briefing.urgency-low      .urgency-bar { background: var(--tag-status); }
+.briefing.urgency-normal   .urgency-bar { background: var(--tag-help); }
+.briefing.urgency-high     .urgency-bar { background: var(--tag-victim); }
+.briefing.urgency-critical .urgency-bar { background: var(--tag-danger); animation: pulse 0.7s infinite; }
+.briefing.flash { animation: brief-flash 0.6s ease-out; }
+@keyframes brief-flash { 0% { background: #243244; } 100% { background: var(--panel); } }
+
+.briefing-body { flex: 1; padding: 6px 8px 8px 10px; display: flex; flex-direction: column; min-width: 0; }
+.briefing-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-height: 28px; }
+.briefing-label { font-weight: 700; letter-spacing: 1px; }
+.briefing-ago { flex: 1; text-align: right; }
+.unread {
+  background: var(--tag-victim); color: #0b0f14; border: 0; border-radius: 8px;
+  font-weight: 800; font-size: 13px; padding: 6px 10px; min-height: 36px; cursor: pointer;
+}
+.mute {
+  background: transparent; border: 1px solid var(--line); color: var(--text);
+  width: 44px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer;
+}
+.mute.on { background: var(--tag-danger); border-color: var(--tag-danger); }
+.briefing-text {
+  font-size: 22px; font-weight: 700; line-height: 1.2;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+}
+.briefing.urgency-critical .briefing-text { color: #fff; }
+.briefing-text.empty { color: var(--muted); font-weight: 500; }
+
+/* ------------------------------------------------------------------ map */
+.map-wrap {
+  position: relative;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 4px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  overflow: hidden;
+}
+.map-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 2px 2px; }
+.map-head span:last-child { color: var(--tag-victim); font-weight: 700; }
+.map { width: 100%; flex: 1; min-height: 0; display: block; border-radius: 6px; background: var(--panel-2); }
+.map.marking { cursor: crosshair; outline: 2px dashed var(--tag-victim); }
+
+.map .grid line { stroke: #1a2330; stroke-width: 0.6; }
+.map .zone text { fill: #7f8da0; font-family: var(--sans); font-size: 7.5px; pointer-events: none; }
+.map .zone rect { stroke: #0b0f14; stroke-width: 0.8; }
+.map .footprint { fill: none; stroke: #3b4a5c; stroke-width: 1.5; stroke-dasharray: 4 2; }
+.map .me circle { stroke: #fff; stroke-width: 2; }
+.map .me text { fill: #0b0f14; font-family: var(--mono); font-weight: 800; font-size: 9px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.map .other circle { stroke: #0b0f14; stroke-width: 1; }
+.map .other text { fill: #e6edf3; font-family: var(--mono); font-size: 6px; text-anchor: middle; pointer-events: none; }
+.map .victim .marker { fill: var(--tag-victim); stroke: #0b0f14; stroke-width: 1; }
+.map .victim.extracted .marker { fill: var(--st-ok); }
+.map .victim .badge { fill: #0b0f14; font-family: var(--mono); font-weight: 800; font-size: 7px; text-anchor: middle; dominant-baseline: central; }
+.map .victim .prob { fill: var(--tag-victim); font-family: var(--mono); font-size: 7px; text-anchor: middle; }
+.map .hazard polygon { fill: var(--tag-danger); stroke: #0b0f14; stroke-width: 1; }
+.map .hazard text { fill: #0b0f14; font-family: var(--mono); font-weight: 900; font-size: 9px; text-anchor: middle; dominant-baseline: central; }
+.map .mark-cell { fill: rgba(255,176,32,0.35); stroke: var(--tag-victim); stroke-width: 1.5; }
+.map .show-cell { fill: none; stroke: var(--tag-help); stroke-width: 2; animation: pulse 1s infinite; }
+.map .pulse { animation: pulse 1.2s infinite; }
+.map .hit { fill: transparent; }
+
+/* photo overlay */
+.photo-overlay {
+  position: absolute; inset: 0;
+  background: rgba(11,15,20,0.94);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 8px; z-index: 5; border-radius: var(--radius);
+}
+.photo-overlay[hidden] { display: none; }
+.photo-overlay canvas { max-width: 100%; max-height: calc(100% - 36px); border-radius: 6px; border: 1px solid var(--line); }
+.photo-caption { font-size: 18px; font-weight: 800; color: var(--tag-victim); }
+.photo-caption.none { color: var(--st-ok); }
+.photo-caption.error { color: var(--tag-danger); }
+
+/* toasts */
+.toasts { position: absolute; left: 8px; right: 8px; top: 26px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 6; }
+.toast {
+  background: #1c2735; color: var(--text); border-left: 6px solid var(--tag-help);
+  padding: 8px 10px; border-radius: 8px; font-size: 15px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  animation: toast-in 0.25s ease-out;
+}
+.toast.victim { border-left-color: var(--tag-victim); }
+.toast.danger { border-left-color: var(--tag-danger); }
+.toast.ok     { border-left-color: var(--st-ok); }
+.toast.status { border-left-color: var(--tag-status); }
+.toast.out { opacity: 0; transition: opacity 0.4s; }
+@keyframes toast-in { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ----------------------------------------------------------- buttons */
+.btn {
+  min-height: var(--tap);
+  border: 0; border-radius: var(--radius);
+  font-family: var(--sans); font-weight: 900; font-size: 19px; letter-spacing: 0.5px;
+  color: #0b0f14; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 8px;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25);
+}
+.btn:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25); filter: brightness(1.15); }
+.btn[disabled] { opacity: 0.4; cursor: default; }
+
+/* same height in both modes so the map never jumps when entering MARK mode */
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-height: calc(var(--tap) * 2 + 6px); }
+.buttons[hidden] { display: none; }
+.mark-buttons .btn { font-size: 22px; }
+.btn-mark { background: var(--tag-victim); }
+.btn-help { background: var(--tag-help); }
+.btn-out  { background: var(--st-ok); }
+.btn-ok   { background: #c9d4e0; }
+.btn-confirm { background: var(--tag-victim); font-size: 21px; }
+.btn-cancel  { background: #35414f; color: var(--text); }
+.btn.sent { animation: sent 0.5s ease-out; }
+@keyframes sent { 0% { filter: brightness(1.8); } 100% { filter: none; } }
+
+.cam-bar { display: flex; gap: 6px; align-items: stretch; }
+.btn-cam { flex: 1; background: #233040; color: var(--text); font-size: 15px; min-width: 0; }
+.btn-cam .btn-icon { color: var(--tag-danger); font-size: 22px; }
+.samples { display: flex; gap: 4px; }
+.sample {
+  width: var(--tap); min-width: 56px; height: var(--tap); padding: 2px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.sample:active { border-color: var(--tag-victim); }
+.sample img, .sample canvas { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; display: block; }
+.sample img:not([src]) { display: none; }
+
+/* ------------------------------------------------------- audio overlay */
+.audio-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(11,15,20,0.96);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 20px;
+}
+.audio-overlay[hidden] { display: none; }
+.btn-audio {
+  width: 100%; max-width: 320px; min-height: 160px;
+  background: var(--tag-help); flex-direction: column; font-size: 26px; gap: 6px;
+}
+.btn-audio .big { font-size: 48px; }
+.btn-audio .small { font-size: 14px; font-weight: 500; opacity: 0.85; letter-spacing: 0; }
+.btn-skip { width: 100%; max-width: 320px; background: #233040; color: var(--text); font-size: 16px; }
+
+/* taller phones: give the map more room */
+@media (min-height: 760px) {
+  .briefing-text { font-size: 24px; -webkit-line-clamp: 5; }
+  .map-head { font-size: 13px; }
+}
+@media (max-height: 600px) {
+  .callsign { font-size: 28px; }
+  .briefing { min-height: 96px; }
+  .briefing-text { font-size: 19px; -webkit-line-clamp: 3; }
+}
