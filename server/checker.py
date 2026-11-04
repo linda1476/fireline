@@ -3,12 +3,16 @@
 check(tool, args, state, now_t, recent_pushes) -> (ok, error|None). Pure: never mutates state.
 
 Invariants enforced per call:
-  (1) send_brief target is in / entering / assigned to the event zone, its parent, its children, or the zone
-      directly above/below it (vertical neighbour: floor ±1 with overlapping footprint) unless priority P0.
+  (1) send_brief target is in / entering / assigned to the event zone, its parent, its children / siblings, or the
+      zone directly above/below it (vertical neighbour: floor ±1 with overlapping footprint) unless priority P0;
+      P0 only on MAYDAY-class evidence (is_mayday_class).
   (2) ≤1 non-P0 push per unit per 20 s (recent_pushes[unit_id] = t of the last non-P0 push).
   (3) brief text ≤2 sentences and ≤140 chars.
   (4) propose_order only creates a Proposal (args validated: kind in ProposalKind; never a crew brief).
   (6) every call cites an existing evidence_event_id (get_unit_state / ping_unit exempt).
+  (7) send_brief to the unit that is the SUBJECT of a MAYDAY (distressed_unit()) must not restate their own distress
+      (긴급탈출 / mayday / the cause / their own name); they get request_missing_field instead, and a
+      "구조대 투입 중, 위치 유지" brief only when the IC approves RIT_DEPLOY (world.decide_proposal).
 Invariant (5) (MAYDAY ack/escalation) is checked at wake end: see open_unescalated_maydays().
 """
 
@@ -20,7 +24,7 @@ from functools import lru_cache
 from typing import Any
 
 from server.config import get_settings
-from server.models import Event, State, Zone
+from server.models import DISTRESS_WHAT_KO, Event, State, Zone, assignment_zone
 
 PUSH_GAP_S = 20.0
 MAX_CHARS = 140
@@ -70,6 +74,7 @@ def related_zones(zone_id: str | None, state: State) -> set[str]:
         return out
     if z.parent:
         out.add(z.parent)
+        out |= {c.id for c in zones.values() if c.parent == z.parent}  # siblings (same wing)
     out |= {c.id for c in zones.values() if c.parent == zone_id}
     if z.kind == "indoor" and z.floor is not None:
         for o in zones.values():
@@ -85,7 +90,8 @@ def unit_in_zones(unit_id: str, zone_ids: set[str], state: State) -> bool:
     u = state.units.get(unit_id)
     if u is None:
         return False
-    return (u.zone_id in zone_ids) or (u.assignment in zone_ids)
+    # roster assignments are free text ("2F-E 우선탐색"): the leading zone id counts as the assigned sector
+    return (u.zone_id in zone_ids) or (u.assignment in zone_ids) or (assignment_zone(u.assignment) in zone_ids)
 
 
 def find_event(state: State, event_id: str | None) -> Event | None:
@@ -95,6 +101,53 @@ def find_event(state: State, event_id: str | None) -> Event | None:
         if e.id == event_id:
             return e
     return None
+
+
+DISTRESS_TERMS = ["긴급탈출", "맨다운", "메이데이", "mayday", "mandown", "trapped", "고립", "퇴로상실",
+                  *[v for k, v in DISTRESS_WHAT_KO.items() if k not in ("OTHER", "UNKNOWN")]]
+
+
+def distressed_unit(event: Event | None, state: State) -> str | None:
+    """The unit a MAYDAY is ABOUT (not who said it): the MAYDAY/R2 card holding this event → its unit_id;
+    else triage.distress.who snapped to the roster; else the speaker if it is a crew unit. None if not a MAYDAY."""
+    if event is None:
+        return None
+    card = next((c for c in state.cards if event.id in c.event_ids), None)
+    is_md_card = card is not None and (card.kind == "MAYDAY" or (card.kind == "RULE" and card.rule_id == "R2"))
+    if event.triage.tag != "MAYDAY" and not is_md_card:
+        return None
+    if is_md_card and card.unit_id in state.units:
+        return card.unit_id
+    who = event.triage.distress.who if event.triage.distress else None
+    if who:
+        from server.verify import snap_unit
+
+        uid = snap_unit(who, lang=state.lang, roster=state.units or None)
+        if uid in state.units and state.units[uid].role not in ("IC", "DISPATCH"):
+            return uid
+    sp = event.speaker_unit_snapped
+    if sp in state.units and state.units[sp].role not in ("IC", "DISPATCH"):
+        return sp
+    return None
+
+
+def is_mayday_class(event: Event | None, state: State) -> bool:
+    """Crew-safety evidence that justifies P0: a MAYDAY tag, a distress block, or a MAYDAY / R2 (priority 0) card."""
+    if event is None:
+        return False
+    if event.triage.tag == "MAYDAY" or event.triage.distress is not None:
+        return True
+    return any(event.id in c.event_ids and (c.kind == "MAYDAY" or (c.kind == "RULE" and c.priority == 0))
+               for c in state.cards)
+
+
+def restates_distress(text: str, unit_id: str, state: State) -> bool:
+    from server.verify import norm_key
+
+    k = norm_key(text)
+    u = state.units.get(unit_id)
+    own = [u.name] if u and u.name else []
+    return any(norm_key(t) and norm_key(t) in k for t in [*DISTRESS_TERMS, *own])
 
 
 def count_sentences(text: str) -> int:
@@ -154,6 +207,15 @@ def check(
         if err:
             return False, f"{err} (invariant 3)"
         uid = args["unit_id"]
+        if uid == distressed_unit(event, st) and restates_distress(args.get("text") or "", uid, st):
+            return False, (
+                f"unit {uid} is the member in distress for {event.id}; do not brief them about their own mayday. "
+                "Use request_missing_field for missing SOP 109 fields; a hold-position brief goes out only when the IC "
+                "approves RIT_DEPLOY (invariant 7)"
+            )
+        if prio == "P0" and not is_mayday_class(event, st):
+            return False, (f"P0 is only for crew safety (MAYDAY); {event.id} is {event.triage.tag}. Use P1/P2 to units "
+                           "in/assigned to the sector, hold for the rest (invariant 1)")
         if prio != "P0":
             ez = event.zone_id_snapped
             rel = related_zones(ez, st)
@@ -171,6 +233,12 @@ def check(
     if tool == "request_missing_field":
         if args.get("field") not in MISSING_FIELDS:
             return False, f"field must be one of {sorted(MISSING_FIELDS)}"
+        # SOP 109 fields are asked of the member in distress only, on a MAYDAY-class event (it is pushed as P0)
+        if not is_mayday_class(event, st):
+            return False, f"request_missing_field needs a MAYDAY event; {event.id} is {event.triage.tag}"
+        subject = distressed_unit(event, st)
+        if subject is not None and args["unit_id"] != subject:
+            return False, f"request_missing_field goes to the member in distress ({subject}), not {args['unit_id']}"
         return True, None
 
     if tool == "propose_order":

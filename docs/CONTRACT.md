@@ -8,20 +8,24 @@ Everything every module and screen agrees on. Spec: `research/PRODUCT_SPEC.md`. 
 
 ```
 server/
-  config.py          Settings (API key from .env, thresholds, paths), load_keywords()
+  config.py          Settings (API key from .env, thresholds, paths), load_keywords(lang) (drops + logs terms > 30 chars: API 400)
   models.py          pydantic models + TRIAGE_SCHEMA (strict JSON schema for Spark)
   meta/spark.py      SparkClient: acomplete_json(system, user, Triage, TRIAGE_SCHEMA) → (Triage, ms, usage); .async_client for Responses
   meta/asr.py        ASRClient.transcribe_file(wav, keywords=None|[]), RealtimeTranscriber(connect/stream_pcm/close), read_pcm, silence
   scenario.py        ScenarioPlayer: loads data/scenario_hanbit.yaml; replay clock; streams per-channel PCM at 1x into asr; emits audio_cue; schedules ptt/agent lines
   gate.py            should_triage(text) → bool  (drops empty / <2 tokens / squelch-only finals)
-  triage.py          triage(text, lang, channel) → (Triage, ms, usage); prompt + 6 few-shots (NOT eval lines)
-  verify.py          verify(triage, text) → (evidence_verified, triage'); snap_unit(raw, roster, lang) → unit_id|None; snap_zone(raw, floor, zones) → zone_id|None
+  triage.py          triage(text, lang, channel) → (Triage, ms, usage); prompt + 6 few-shots (NOT eval lines); EARSHOT_MEMO=1 → cache.memo
+  verify.py          verify(triage, text) → (evidence_verified, triage'); snap_unit(raw, lang="ko", roster=None) → unit_id|None;
+                     snap_zone(raw_hints, floor=None, lang="ko", zones=None) → zone_id|None (floor = preference, not filter);
+                     snap_event(triage, text, lang) → (verified, triage', unit_id, zone_id)
   world.py           World: state, ids, append-only log, apply_event(), 1 Hz tick → rules, WS broadcast via a callback
   rules.py           R1..R5 over World (pure functions on state + t; return actions)
-  agent.py           RelevanceAgent: wake(reason, snapshot) → tool calls via Spark Responses API, ≤3 rounds, 8 s timeout
-  checker.py         check(tool_name, args, world) → (ok, error)  (6 invariants)
+  agent.py           RelevanceAgent: wake(reason, event) → tool calls via Spark Responses API, ≤3 rounds, agent_timeout_s (12 s)
+                     → router fallback delivers, the wake continues in the background (late calls applied, deduped)
+  checker.py         check(tool_name, args, state, now_t, recent_pushes) → (ok, error)  (invariants 1–4, 6, 7; 5 at wake end);
+                     distressed_unit(event, state) → the unit a MAYDAY is about
   router_fallback.py route(event, world) → briefs by zone match, text = triage.crew_brief
-  cache.py           record/replay JSONL of every Meta call keyed by sha256(kind + canonical input)
+  cache.py           RunRecorder / RunReplayer (run_<ts>.jsonl), list_runs / promote / newest_run, memo(kind, payload, compute)
   main.py            FastAPI app: REST below, WS /ws, static /samples → data/audio
 eval/run_eval.py     batch eval → eval/results.json + eval/results.md
 scripts/make_audio.py  raw recordings → clean 16k WAV → radio (AMR-NB) WAV; TTS fallback (Heami/Zira)
@@ -63,8 +67,12 @@ plus every REST action (`{t, method, path, body}`) of the run to `data/cache/run
 cards, briefs and latency badges are exactly the recorded live run; REST actions during REPLAY are ignored and the
 recorded ones are shown as toasts). `data/cache/best.jsonl` is the run used in the video. Separately, `cache.py` also
 offers an input-hash memo (`sha256(kind + canonical input)`) for `transcribe_file` and `triage` so eval/CLI re-runs
-are cheap during development (`EARSHOT_MEMO=1`); it never applies to the agent. Nothing is ever silently faked: a
-REPLAY with no run file raises.
+are cheap during development (`EARSHOT_MEMO=1`, wired in `triage.triage`: key = text, lang, channel, model, effort,
+prompt hash; a hit returns the original call's ms with `usage.memo = true`); it never applies to the agent. Nothing is
+ever silently faked: a REPLAY with no run file raises (404). `run:"best"` with no `best.jsonl` plays the newest
+`run_*.jsonl` and says so with a WS `toast` `{method:"INFO", path:"best.jsonl missing, playing newest run …"}`
+(and `replay_note` in the response). The recorder stays open `RECORDER_GRACE_S` = 30 s after a LIVE run stops
+(end of scenario or POST stop) so late REST acks and late agent output are still recorded.
 
 **Triage prompt must-haves (smoke_b1.md):** `needs` and `air` are verbatim from the transcript or null (never
 "구조 요청" / "rescue" / "low"); TRAPPED and LOST are equivalent downstream; any transmission that is part of an ongoing
@@ -83,6 +91,9 @@ to it; `unit.heard_count` += 1 per Brief(push) to it; `counters.held` = Σ(total
 - Card from Event when `tag != ROUTINE`. `kind = tag`. `priority = TAG_PRIORITY[tag]`.
 - Dedupe: same `unit_id` + same `zone_id` (or either null) + same kind within `dedupe_window_s` (30 s) → merge:
   append event_id, fill missing `fields`, recompute `missing_fields`, keep the earliest `created_t`.
+- `created_t` = world clock when the card became VISIBLE (≥ Event.t: the card exists only after ASR + triage, ~10–15 s
+  after key-up); `event_t` = key-up `Event.t` of the first event (null for RULE cards). R1 and the UI ack timer count
+  from `created_t`; the dedupe window counts from the events' `t`. A queued card's `created_t` is bumped when promoted.
   HELP_NEEDED from a unit with an open MAYDAY card merges into that MAYDAY card (fills `needs`).
 - `fields` for MAYDAY = SOP 109: `who` (speaker_unit raw or unit callsign+name), `what` (DISTRESS_WHAT_KO), `where`
   (zone label or where_raw), `needs`, `air`. `missing_fields` = those that are null (air optional: list it but do not
@@ -95,11 +106,19 @@ to it; `unit.heard_count` += 1 per Brief(push) to it; `counters.held` = Σ(total
 
 | id | condition (evaluated at tick t) | action |
 |---|---|---|
-| R1 | card.kind in (MAYDAY, RULE-R2) & state open & t − created_t ≥ 10 → level 1; ≥ 20 → level 2 | card.state=escalated, escalation_level, WS "escalation" {card_id, level}; tone on UI |
+| R1 | card.kind in (MAYDAY, RULE-R2) & state open & t − created_t (visible time) ≥ 10 → level 1; ≥ 20 → level 2 | card.state=escalated, escalation_level, WS "escalation" {card_id, level}; tone on UI |
 | R2 | unit.interior & status IN & no open MAYDAY card for unit & t − last_heard_t ≥ 60 | ping_unit every 8 s (WS "ping", trace); unit.unanswered_pings++ ; at 3 → RULE card "3회 무응답 = 긴급탈출 상황 (SOP 109 §1.1)" priority 0 |
 | R3 | Event tag DANGER while state.strategy == OFFENSIVE | Proposal CONFIRM_STRATEGY (source rule) linked to the DANGER card |
 | R4 | VICTIM_FOUND card, victims.state != EXTRACTING, no unit assigned within 30 s | Proposal ASSIGN |
 | R5 | unit.status LOW_AIR or HELP_NEEDED card without EXITING event from that unit within 60 s | escalate card (level 1) |
+
+World notes: R2 skips a unit with any non-resolved MAYDAY/R2 card (acked counts) or status TRAPPED; R5's LOW_AIR branch
+escalates only that unit's MAYDAY card (plus any HELP_NEEDED card). An Event moves its speaker to the snapped zone only
+when the speaker is interior and the zone is indoor, or on EXITING; status_change from IC/Dispatch applies to the
+subject unit (`_subject_unit`), never to IC/Dispatch. Acking a resolved card is a no-op; a merge regenerates the card
+title. The run recorder stamps WS/REST with the player clock (`RT.now_t()`). Start / reset cancel the previous run's
+in-flight tasks and the agent's late wakes; reset keeps WS broadcast for LIVE. The gate always triages codewords and
+short hazard words (철수/붕괴/대피/탈출/evacuate/collapse/withdraw) and counts tokens before collapsing repeats.
 
 Any transmission from a unit resets `last_heard_t`, `unanswered_pings=0`, and resolves an open R2 card for that unit
 with note "found OK". A crew ack (`POST /api/crew/{unit}/ack`) does the same.
@@ -107,9 +126,16 @@ with note "found OK". A crew ack (`POST /api/crew/{unit}/ack`) does the same.
 ## Relevance agent (agent.py) and checker
 
 Wake reasons: `event:<id>` (non-ROUTINE), `rule:<R>:<unit>`, `button:<unit>:<kind>`, `proposal_approved:<id>`.
-Input: compact snapshot (units, zones with hazards, open cards, last 3 briefs per unit, the triggering event incl.
-`crew_brief`). Responses API, tools below, ≤3 rounds via `previous_response_id` + `function_call_output`, wall timeout
-`agent_timeout_s` → `router_fallback`. Every tool result is `{"ok": true, ...}` or `{"ok": false, "error": "..."}` (checker).
+Input (round 1, kept cheap): open cards only, units with role CREW/RIT/EXTERIOR, zones with hazards/victims (+ the event
+zone), last 1 brief per unit, the triggering event incl. `crew_brief`, `related_zones` and `distressed_unit`.
+Round 1 runs at `agent_round1_reasoning_effort` ("minimal") with `max_output_tokens` 1500 (re-issued at 4000 if it comes
+back `incomplete` with no tool call); later rounds use `agent_reasoning_effort` ("low") and 4000. Responses API, tools
+below, ≤3 rounds via `previous_response_id` + `function_call_output`. At `agent_timeout_s` (12 s) the `router_fallback`
+delivers immediately and `wake()` returns; the loop keeps running in the background (≤ 45 s) and its late calls are
+applied when they pass the checker and are not duplicates (send_brief to a unit that already has a push for the same
+evidence event, or hold to a unit with any brief for it → `{"ok": true, "deduped": true}`, not a rejection; a pending
+proposal of the same kind for the same event is likewise reused). Late trace entries carry `late: true`.
+Every tool result is `{"ok": true, ...}` or `{"ok": false, "error": "..."}` (checker).
 
 | tool | args | effect |
 |---|---|---|
@@ -122,10 +148,18 @@ Input: compact snapshot (units, zones with hazards, open cards, last 3 briefs pe
 | ping_unit | unit_id | WS "ping"; unanswered_pings++ |
 
 Checker invariants (reject → `{"ok":false,"error"}` and the agent retries): (1) send_brief target in/entering/assigned
-to the event zone (or its parent/children) unless priority P0; (2) ≤1 non-P0 push per unit per 20 s; (3) text ≤ 2
+to the event zone (its parent/children/siblings, vertical neighbours; a free-text assignment counts by its leading
+zone id, "2F-E 우선탐색" → 2F-E) unless priority P0, and P0 only on MAYDAY-class evidence (tag MAYDAY, a distress
+block, or a MAYDAY / R2 card); request_missing_field only on a MAYDAY-class event and only to the distressed unit; (2) ≤1 non-P0 push per unit per 20 s; (3) text ≤ 2
 sentences and ≤ 140 chars; (4) propose_order only creates a Proposal; (5) every MAYDAY card has an ack or a pending
-escalation (checked on wake end; else auto escalate_to_ic); (6) every tool call cites an existing evidence_event_id
-(get_unit_state/ping_unit exempt). Trace: `wake` → `reasoning` (summary if returned) → `tool_call` → `checker` →
+escalation (checked on wake end; else auto escalate_to_ic); (6) every tool call cites an existing evidence_event_id (get_unit_state/ping_unit exempt); (7) send_brief to the
+unit a MAYDAY is about (`checker.distressed_unit`: the MAYDAY/R2 card's `unit_id`, else `distress.who` snapped with
+`snap_unit`, else a crew speaker) whose text restates their own distress (긴급탈출/mayday/cause terms/their name) is
+rejected; that unit gets `request_missing_field`, and a P0 "구조대 투입 중, 위치 유지." brief only when the IC approves
+RIT_DEPLOY (`world.decide_proposal`). The router fallback holds that unit on a MAYDAY instead of pushing it the P0. The router also applies (2) and (3)
+(hold "rate limited (20 s)"; template text if crew_brief breaks (3)), and runs as a gap fill after every agent wake
+that ends on its own, for crew units the agent left undecided (trace `fallback` reason "agent gap fill"). Text-only
+model messages are traced as `reasoning` (`from: "message"`). Trace: `wake` → `reasoning` (summary if returned) → `tool_call` → `checker` →
 `delivery`, all WS "trace". `counters.checker_rejections++` on reject.
 
 ## Briefs on the crew screen
@@ -139,11 +173,13 @@ speaks `text` with `speechSynthesis` (`ko-KR`/`en-US`), labelled "TTS: browser (
 
 | method path | body → response |
 |---|---|
-| POST /api/scenario/start | {mode: LIVE/REPLAY, scenario: "hanbit", lang: ko/en, audio: "radio"/"clean"} → State |
+| POST /api/scenario/start | {mode: LIVE/REPLAY, scenario: "hanbit", lang: ko/en, audio: "radio"/"clean", speed?: number (LIVE: compresses the silence between clips, ScenarioPlayer), run?: file or "best" (REPLAY)} → State |
+| GET /api/runs | → [{file, size, t_max, mtime, best}] (data/cache run_*.jsonl + best.jsonl, newest first) |
+| POST /api/runs/{file}/promote | copies data/cache/{file} (run_*.jsonl) → best.jsonl → {promoted, best, size, t_max} |
 | POST /api/scenario/stop · /reset | → State |
 | GET /api/state | → State |
 | POST /api/cards/{id}/ack · /resolve | → Card |
-| POST /api/proposals/{id}/approve · /reject | → Proposal (approve → P0 brief to `units` and world effects: RADIO_SILENCE flag, RIT_DEPLOY sets rit.zone, WITHDRAW sets all IN→EXITING, CONFIRM_STRATEGY sets strategy, ASSIGN sets assignment) |
+| POST /api/proposals/{id}/approve · /reject | → Proposal (approve → P0 brief to `units` and world effects: RADIO_SILENCE flag, RIT_DEPLOY sets rit.zone, WITHDRAW sets all IN→OUT (interior false, assignment "EXITING (withdraw)"), CONFIRM_STRATEGY sets strategy, ASSIGN sets assignment) |
 | PATCH /api/proposals/{id} | {text} → Proposal (state edited, still pending) |
 | POST /api/crew/{unit}/button | {kind: EVACUATE/VICTIM_HERE/SEARCH_DONE/NEED_HELP} → Event (synthetic transcript per kind; EVACUATE → MAYDAY card, VICTIM_HERE → VICTIM_FOUND at unit zone, SEARCH_DONE → zone.search_state=searched, NEED_HELP → HELP_NEEDED) |
 | POST /api/crew/{unit}/ptt | {clip_id: "L06"} → Transmission (PUSH_TO_TALK realtime session on the clip's clean/radio WAV, then the normal pipeline, channel PTT) |
@@ -178,6 +214,8 @@ evidence-span verbatim rate, Spark latency p50/p95. Writes `eval/results.json` (
 ## Conventions
 
 - ids: `tx_000N`, `evt_000N`, `card_000N`, `prop_000N`, `brief_000N`, `tr_000N` (World counters).
-- Never log or print the API key. Never pass max_tokens < 3000 to Spark. Always `reasoning_effort` from Settings.
+- Never log or print the API key. Never pass max_tokens < 3000 to Spark, except agent round 1 (1500 at "minimal",
+  re-issued at 4000 on `incomplete`). Always `reasoning_effort` from Settings.
+- ASR keywords ≤ 30 characters each (`load_keywords` drops and logs longer ones; the API answers 400).
 - Korean on screen for fire terms (긴급탈출, 구조대상자, 우선탐색); English UI chrome; `label_en`/`text_en` for subtitles.
 - Every number shown as latency is measured in that run; nothing hard-coded.

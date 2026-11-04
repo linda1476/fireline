@@ -52,10 +52,12 @@ function Lane({
   state: State
   onPlay: (tx: Transmission) => void
 }) {
-  const endRef = useRef<HTMLDivElement>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
   const last = txs[txs.length - 1]
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" })
+    // scroll only the lane's own viewport (scrollIntoView would scroll the window on /demo)
+    const vp = boxRef.current?.querySelector<HTMLElement>("[data-slot='scroll-area-viewport']")
+    if (vp) vp.scrollTop = vp.scrollHeight
   }, [txs.length, last?.text_partial, last?.text_final])
   return (
     <section className="flex min-h-0 flex-1 flex-col border-b border-border">
@@ -64,12 +66,13 @@ function Lane({
         <span className="text-sm text-zinc-400">{sub}</span>
         <span className="ml-auto text-xs text-zinc-500">{txs.length}</span>
       </div>
-      <ScrollArea className="min-h-0 flex-1">
-        {txs.map((tx) => (
-          <TxRow key={tx.id} tx={tx} state={state} onPlay={onPlay} />
-        ))}
-        <div ref={endRef} />
-      </ScrollArea>
+      <div ref={boxRef} className="flex min-h-0 flex-1 flex-col">
+        <ScrollArea className="min-h-0 flex-1">
+          {txs.map((tx) => (
+            <TxRow key={tx.id} tx={tx} state={state} onPlay={onPlay} />
+          ))}
+        </ScrollArea>
+      </div>
     </section>
   )
 }
@@ -84,7 +87,7 @@ export function ChannelLanes({
   autoPlay: boolean
 }) {
   const audioRef = useRef<Partial<Record<Channel, HTMLAudioElement | null>>>({})
-  const seen = useRef<number>(-1)
+  const seen = useRef<number>(-1) // last cue seq handled (-1 = not mounted yet)
 
   const play = (ch: Channel, url: string) => {
     const lane: Channel = ch === "PTT" ? "TAC" : ch
@@ -99,12 +102,13 @@ export function ChannelLanes({
 
   // audio_cue → play clip on its lane; only cues that arrive after mount, only when autoPlay.
   useEffect(() => {
+    const maxSeq = audioCues.reduce((m, c) => Math.max(m, c.seq ?? 0), 0)
     if (seen.current < 0) {
-      seen.current = audioCues.length
+      seen.current = maxSeq
       return
     }
-    const fresh = audioCues.slice(seen.current)
-    seen.current = audioCues.length
+    const fresh = audioCues.filter((c) => (c.seq ?? 0) > seen.current)
+    seen.current = Math.max(seen.current, maxSeq)
     if (!autoPlay) return
     for (const cue of fresh) if (cue.audio_url) play(cue.channel, cue.audio_url)
   }, [audioCues, autoPlay])

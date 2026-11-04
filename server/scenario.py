@@ -204,6 +204,11 @@ class ScenarioPlayer:
 
     async def stop(self) -> None:
         self.running = False
+        main = getattr(self, "_main", None)
+        if main is not None and main is not asyncio.current_task() and not main.done():
+            main.cancel()  # no tail sleep → _finalise after a stop
+        for ch in list(self._open):
+            self._open[ch] = None
         for t in self._tasks:
             t.cancel()
         for rt in self._rts.values():
@@ -216,6 +221,13 @@ class ScenarioPlayer:
         self.running = True
         if self.asr == "realtime":
             await self._connect_all()
+            if not self.running:  # stopped while connecting: close what connected, never start streaming
+                for rt in self._rts.values():
+                    try:
+                        await rt.close(wait=0)
+                    except Exception:
+                        pass
+                return
         self.start_wall = self.clock()
         if self.asr == "realtime":
             for ch, rt in self._rts.items():

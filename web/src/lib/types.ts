@@ -141,6 +141,8 @@ export interface Card {
   evidence_span: string
   channel: Channel | null
   created_t: number
+  /** key-up time of the first event (Event.t); created_t is when the card became visible */
+  event_t?: number | null
   acked_t: number | null
   resolved_t: number | null
   escalation_level: number
@@ -224,10 +226,11 @@ export interface State {
 }
 
 // ----- ephemeral WS payloads (not part of State)
-export interface Ping { unit_id: string; n: number; t: number; ping_id: string }
-export interface Ask { unit_id: string; field: string; text: string; t: number }
-export interface AudioCue { channel: Channel; line_id: string | null; audio_url: string; t: number }
-export interface Escalation { card_id: string; level: number; t: number }
+// `seq` is assigned client-side by ws.ts reduce (monotonic, survives the 50-item cap and run resets)
+export interface Ping { unit_id: string; n: number; t: number; ping_id: string; seq?: number }
+export interface Ask { unit_id: string; field: string; text: string; t: number; seq?: number }
+export interface AudioCue { channel: Channel; line_id: string | null; audio_url: string; t: number; seq?: number }
+export interface Escalation { card_id: string; level: number; t: number; seq?: number }
 export interface ClockMsg { t: number; running: boolean; mode: Mode }
 export interface StrategyMsg { strategy: Strategy; event_id: string | null }
 // REPLAY only: a recorded REST action re-shown as a toast (server/cache.py RunReplayer)

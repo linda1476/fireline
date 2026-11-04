@@ -8,11 +8,17 @@ import unicodedata
 _HNUM = {"일": 1, "이": 2, "삼": 3, "사": 4, "오": 5, "육": 6, "칠": 7, "팔": 8, "구": 9}
 _COUNTERS = r"(층|미터|명|개)"   # not 대/분: "이 대원" must stay
 # Hangul numeral only when directly bound to a counter (avoids 이상/일단/사무실 etc.)
-_RE_HNUM = re.compile(r"(?<![가-힣])(십[일이삼사오육칠팔구]?|[일이삼사오육칠팔구]십[일이삼사오육칠팔구]?|[일이삼사오육칠팔구])\s*" + _COUNTERS)
+# 이/일/사/구 are also words ("이 명령" = "this order"): as single syllables they must touch 명/개/미터 ("이명"); only
+# before 층 a space is allowed, because ASR really splits floors ("이 층 동측", L02). Compounds and the unambiguous
+# 삼/오/육/칠/팔 may always have a space ("삼 미터").
+_RE_HNUM = re.compile(r"(?<![가-힣])(?:(십[일이삼사오육칠팔구]?|[일이삼사오육칠팔구]십[일이삼사오육칠팔구]?|[삼오육칠팔])\s*"
+                      r"|([일이사구])(?:\s*(?=층)|(?=미터|명|개)))" + _COUNTERS)
 _RE_DUP_TOKEN = re.compile(r"(?<!\S)(\S+)(?:\s+\1)+(?!\S)")
 _RE_DUP_SUFFIX = re.compile(r"([가-힣]{2,})\1(?![가-힣])")
 
 CODEWORDS = ("긴급탈출", "맨다운", "mayday", "메이데이")
+# short shouted warnings that must reach triage even as a single word ("철수!", "붕괴 붕괴")
+HAZARD_WORDS = ("철수", "붕괴", "대피", "탈출", "evacuate", "collapse", "withdraw", "getout")
 
 
 def _hnum_value(s: str) -> int:
@@ -30,7 +36,7 @@ def normalize_ko(text: str | None, strip_spaces: bool = False) -> str:
     if not text:
         return ""
     t = unicodedata.normalize("NFKC", text)
-    t = _RE_HNUM.sub(lambda m: f"{_hnum_value(m.group(1))}{m.group(2)}", t)
+    t = _RE_HNUM.sub(lambda m: f"{_hnum_value(m.group(1) or m.group(2))}{m.group(3)}", t)
     t = _RE_DUP_SUFFIX.sub(r"\1", t)
     t = _RE_DUP_TOKEN.sub(r"\1", t)
     t = re.sub(r"\s+", " ", t).strip()
@@ -53,8 +59,10 @@ def should_triage(text: str | None) -> bool:
         return False
     if has_codeword(text):
         return True
-    norm = normalize_ko(text)
-    toks = _tokens(norm)
+    if any(w in normalize_ko(text, strip_spaces=True).lower() for w in HAZARD_WORDS):
+        return True
+    # count tokens BEFORE duplicate collapsing: "대피 대피 대피" is 3 tokens, not 1
+    toks = _tokens(unicodedata.normalize("NFKC", text))
     if len(toks) < 2:
         return False
     # squelch / stutter: everything is one repeated syllable ("아 아 아", "어어어")

@@ -26,6 +26,7 @@ from server.models import (
 Broadcast = Callable[[WsMessage], Awaitable[None] | None]
 OPEN = ("open", "escalated")
 MAYDAY_FIELDS = ["who", "what", "where", "needs", "air"]
+RIT_HOLD_TEXT = {"ko": "구조대 투입 중, 위치 유지.", "en": "RIT is on the way. Hold your position."}
 KIND_KO = {"MAYDAY": "긴급탈출", "DANGER": "위험", "VICTIM_FOUND": "구조대상자", "HELP_NEEDED": "지원요청", "RULE": "규칙"}
 
 
@@ -273,6 +274,7 @@ class World:
     def _promote(self) -> None:
         while self.queue and self._open_count() < self.th.max_open_cards:
             card = self.queue.pop(0)
+            card.created_t = max(card.created_t, self.state.t)  # visible only now
             self.state.cards.append(card)
             self.emit("card", card)
 
@@ -310,6 +312,9 @@ class World:
             existing.missing_fields = self._missing(existing.fields)
             if existing.zone_id is None and zone_id:
                 existing.zone_id = zone_id
+            if existing.kind != "RULE":  # headline follows merged zone / fields ("· ?" → "· 2F-E-STORE")
+                existing.title, existing.title_en = self._title(existing.kind, existing.fields, existing.unit_id,
+                                                                existing.zone_id)
             self._card_last_t[existing.id] = ev.t
             if existing in self.state.cards:
                 self.emit("card", existing)
@@ -319,7 +324,9 @@ class World:
             id=self.new_id("card"), kind=kind, title=title, title_en=title_en, event_ids=[ev.id],
             priority=TAG_PRIORITY.get(kind, 9), unit_id=unit_id, zone_id=zone_id, fields=fields,
             missing_fields=self._missing(fields), evidence_span=ev.triage.evidence_span, channel=ev.channel,
-            created_t=ev.t, latency_ms=ev.latency.total_ms,
+            # created_t = when the card became visible (world clock), not the key-up Event.t: the card only exists
+            # after ASR + triage (total_ms), and R1 / the UI ack timer count from here.
+            created_t=max(self.state.t, ev.t), event_t=ev.t, latency_ms=ev.latency.total_ms,
         )
         self._card_last_t[card.id] = ev.t
         self._place_card(card)
@@ -357,14 +364,29 @@ class World:
             changed.add(speaker)
             u = st.units[speaker]
             sc = tr.status_change
-            if sc == "ENTERING":
-                u.status, u.interior = "IN", True
-            elif sc == "EXITING":
-                u.status, u.interior = "OUT", False
-            elif sc in ("TRAPPED", "LOW_AIR", "OK"):
-                u.status = sc
-            if ev.zone_id_snapped and u.role not in ("IC", "DISPATCH"):
-                u.zone_id = ev.zone_id_snapped
+            # Command / Dispatch relaying someone else's status ("김하늘 고립", "김하늘 즉시 탈출") changes the SUBJECT,
+            # never the IC / Dispatch unit itself
+            target = u
+            if u.role in ("IC", "DISPATCH"):
+                sid = self._subject_unit(ev, speaker) if sc != "NONE" else None
+                su = self._unit(sid)
+                target = su if su is not None and su.role not in ("IC", "DISPATCH") else None
+            if target is not None:
+                if sc == "ENTERING":
+                    target.status, target.interior = "IN", True
+                elif sc == "EXITING":
+                    target.status, target.interior = "OUT", False
+                elif sc in ("TRAPPED", "LOW_AIR", "OK"):
+                    target.status = sc
+                if target is not u:
+                    changed.add(target.id)
+            # location moves the speaker only when it describes where the speaker IS: an interior unit (or one just
+            # entering) reporting an indoor zone, or an exiting unit. An exterior unit reporting a hazard it can see
+            # ("3층 창문 … 인화물질") or a trapped member moving toward an outdoor landmark ("동측 창문 쪽") stays put.
+            zs = st.zones.get(ev.zone_id_snapped) if ev.zone_id_snapped else None
+            if zs is not None and u.role not in ("IC", "DISPATCH"):
+                if (u.interior and zs.kind == "indoor") or sc == "EXITING":
+                    u.zone_id = zs.id
 
         if tr.strategy_declared != "NONE":
             st.strategy = tr.strategy_declared
@@ -397,6 +419,8 @@ class World:
         c = self._card(card_id)
         if c is None:
             return None
+        if c.state == "resolved":  # a stale Ack click must not reopen a resolved card (e.g. R2 "found OK")
+            return c
         c.state = "acked"
         c.acked_t = self.state.t
         self.emit("card", c)
@@ -475,8 +499,11 @@ class World:
                     u.assignment = f"RIT deploy {target_zone or ''}".strip()
                     self.emit("unit", u)
         elif p.kind == "WITHDRAW":
+            # CONTRACT: all IN units → exiting. UnitStatus has no EXITING; like an EXITING transmission they become
+            # OUT / not interior, so R2 stops pinging withdrawn crews.
             for u in st.units.values():
-                if u.interior:
+                if u.interior and u.status == "IN":
+                    u.status, u.interior = "OUT", False
                     u.assignment = "EXITING (withdraw)"
                     self.emit("unit", u)
         elif p.kind == "CONFIRM_STRATEGY":
@@ -493,8 +520,22 @@ class World:
                 if u:
                     u.assignment = target_zone or p.text
                     self.emit("unit", u)
+        subject = None
+        if p.kind == "RIT_DEPLOY":
+            # the member in distress never gets the mayday restated (checker invariant 7); on RIT approval they get
+            # a hold-position brief instead
+            from server.checker import distressed_unit
+
+            if card is not None and (card.kind == "MAYDAY" or (card.kind == "RULE" and card.rule_id == "R2")):
+                subject = card.unit_id
+            elif p.evidence_event_id:
+                subject = distressed_unit(next((e for e in st.events if e.id == p.evidence_event_id), None), st)
+            if subject in st.units:
+                self.add_brief(subject, RIT_HOLD_TEXT.get(st.lang, RIT_HOLD_TEXT["en"]), priority="P0",
+                               reason="IC approved RIT_DEPLOY: rescue on the way", evidence_event_id=p.evidence_event_id,
+                               source=p.source)
         for uid in p.units:
-            if uid in st.units:
+            if uid in st.units and uid != subject:
                 self.add_brief(uid, p.text, priority="P0", reason=f"IC approved {p.kind}",
                                evidence_event_id=p.evidence_event_id, source=p.source)
         self.recount()

@@ -79,6 +79,64 @@ def load_run(run: str | None) -> list[dict[str, Any]]:
     return recs
 
 
+# ----------------------------------------------------------------------------- run files (GET /api/runs, promote)
+BEST_NAME = "best.jsonl"
+
+
+def _cache_dir(cache_dir: Path | None = None) -> Path:
+    return Path(cache_dir) if cache_dir is not None else CACHE_DIR
+
+
+def run_t_max(path: Path) -> float:
+    t_max = 0.0
+    with Path(path).open(encoding="utf-8") as f:
+        for line in f:
+            try:
+                t_max = max(t_max, float(json.loads(line).get("t", 0.0)))
+            except (json.JSONDecodeError, TypeError, ValueError, AttributeError):
+                continue
+    return t_max
+
+
+def list_runs(cache_dir: Path | None = None) -> list[dict[str, Any]]:
+    """run_*.jsonl (+ best.jsonl) newest first: {file, size, t_max, mtime, best}."""
+    d = _cache_dir(cache_dir)
+    if not d.exists():
+        return []
+    files = sorted(d.glob("run_*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    best = d / BEST_NAME
+    if best.exists():
+        files.insert(0, best)
+    return [{"file": p.name, "size": p.stat().st_size, "t_max": run_t_max(p), "mtime": p.stat().st_mtime,
+             "best": p.name == BEST_NAME} for p in files]
+
+
+def newest_run(cache_dir: Path | None = None) -> Path | None:
+    d = _cache_dir(cache_dir)
+    files = sorted(d.glob("run_*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True) if d.exists() else []
+    return files[0] if files else None
+
+
+def run_file(name: str, cache_dir: Path | None = None) -> Path:
+    """A run file by bare name inside the cache dir (no path traversal). Raises FileNotFoundError / ValueError."""
+    if not name or Path(name).name != name or not name.endswith(".jsonl") or not name.startswith("run_"):
+        raise ValueError(f"not a run file name: {name!r}")
+    p = _cache_dir(cache_dir) / name
+    if not p.is_file():
+        raise FileNotFoundError(f"run file not found: {name}")
+    return p
+
+
+def promote(name: str, cache_dir: Path | None = None) -> Path:
+    """Copy run_<ts>.jsonl → best.jsonl (the run REPLAY run:"best" plays)."""
+    import shutil
+
+    src = run_file(name, cache_dir)
+    dst = _cache_dir(cache_dir) / BEST_NAME
+    shutil.copyfile(src, dst)
+    return dst
+
+
 class RunReplayer:
     """Re-emit a recorded run at 1x. REST records become WS 'toast' messages {method, path, body}.
 

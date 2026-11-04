@@ -233,10 +233,11 @@ class Card(BaseModel):
     missing_fields: list[str] = Field(default_factory=list)
     evidence_span: str = ""
     channel: Channel | None = None
-    created_t: float
+    created_t: float                           # world clock when the card became visible (R1 / UI ack timer)
+    event_t: float | None = None               # key-up t of the first event (Event.t); None for RULE cards
     acked_t: float | None = None
     resolved_t: float | None = None
-    escalation_level: int = 0                  # 0 none, 1 at 10 s, 2 at 20 s (R1)
+    escalation_level: int = 0                  # 0 none, 1 at 10 s, 2 at 20 s after created_t (R1)
     latency_ms: int = 0                        # key-up → card
     note: str | None = None                    # resolution note, e.g. "found OK (L13)"
 
@@ -322,3 +323,12 @@ class WsMessage(BaseModel):
 
     type: str
     payload: dict[str, Any]
+
+
+def assignment_zone(assignment: str | None) -> str | None:
+    """Zone id an assignment string starts with: roster assignments are free text ("2F-E 우선탐색", "1F-W 인명검색");
+    ASSIGN approval writes a bare zone id. Callers compare the result against zone ids (non-zones never match)."""
+    if not assignment:
+        return None
+    parts = assignment.split()
+    return parts[0] if parts else None

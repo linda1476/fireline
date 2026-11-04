@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
@@ -32,6 +33,10 @@ class Settings:
     reasoning_effort: str = os.environ.get("EARSHOT_REASONING_EFFORT", "minimal")
     # Agent loop keeps "low" (needs the reasoning summary + multi-tool planning).
     agent_reasoning_effort: str = os.environ.get("EARSHOT_AGENT_REASONING_EFFORT", "low")
+    # Round 1 of a wake (the one that must beat agent_timeout_s) runs at "minimal": measured 2026-11-04 on the MAYDAY
+    # demo wake, minimal 5.2–6.4 s vs low 8.6–12.1 s to the first tool call, same tool calls. Later rounds use
+    # agent_reasoning_effort.
+    agent_round1_reasoning_effort: str = os.environ.get("EARSHOT_AGENT_ROUND1_EFFORT", "minimal")
     # Realtime ENDPOINTING splits a transmission at pauses ≥ ~0.86 s (smoke_b1.md): merge turns closer than this.
     turn_merge_gap_s: float = 1.5
     # Agent wake timeout before router_fallback takes over (seconds).
@@ -61,6 +66,22 @@ def _is_hangul(term: str) -> bool:
     return any("가" <= ch <= "힣" for ch in term)
 
 
+ASR_KEYWORD_MAX_CHARS = 30   # the ASR API rejects (400) any keyword longer than this
+log = logging.getLogger("earshot.config")
+
+
+def filter_keywords(terms: list[str], max_chars: int = ASR_KEYWORD_MAX_CHARS) -> list[str]:
+    """Dedupe (order kept) and drop terms longer than max_chars, logging each dropped term."""
+    out: list[str] = []
+    for term in terms:
+        if len(term) > max_chars:
+            log.warning("ASR keyword dropped (%d chars > %d): %r", len(term), max_chars, term)
+            continue
+        if term not in out:
+            out.append(term)
+    return out
+
+
 @lru_cache(maxsize=4)
 def load_keywords(lang: str = "ko") -> list[str]:
     """Keyword-biasing list per language (data/keywords.json): SOP/LUNAR terms + roster + zones.
@@ -68,8 +89,4 @@ def load_keywords(lang: str = "ko") -> list[str]:
     data = json.loads((ROOT / "data" / "keywords.json").read_text(encoding="utf-8"))
     sop = data.get("sop_terms_ko" if lang == "ko" else "sop_terms_en", [])
     extra = [t for t in data.get("roster_terms", []) + data.get("zone_terms", []) if _is_hangul(t) == (lang == "ko")]
-    out: list[str] = []
-    for term in list(sop) + extra:
-        if term not in out:
-            out.append(term)
-    return out
+    return filter_keywords(list(sop) + extra)

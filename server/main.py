@@ -23,6 +23,7 @@ from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from server import cache as cache_mod
 from server.cache import RunRecorder, RunReplayer
 from server.config import ROOT, get_settings
 from server.models import CREW_BUTTON_KO, Event, Latency, State, Transmission, Triage, WsMessage
@@ -60,6 +61,7 @@ except Exception:  # pragma: no cover
     router_route = None  # type: ignore[assignment]
 
 S = get_settings()
+RECORDER_GRACE_S = 30.0   # keep recording REST acks / late agent output this long after a LIVE run stops
 
 
 # ----------------------------------------------------------------------------- runtime
@@ -72,13 +74,33 @@ class Runtime:
         self.recorder: RunRecorder | None = None
         self.agent: Any = None
         self.audio = "radio"
-        self.tasks: set[asyncio.Task] = set()
+        self.tasks: set[asyncio.Task] = set()       # per-run work (wakes, triage, PTT): cancelled on stop / start / reset
+        self.service_tasks: set[asyncio.Task] = set()  # clock loop, recorder retirement: survive run changes
 
     def spawn(self, coro) -> asyncio.Task:
         t = asyncio.create_task(coro)
         self.tasks.add(t)
         t.add_done_callback(self.tasks.discard)
         return t
+
+    def spawn_service(self, coro) -> asyncio.Task:
+        t = asyncio.create_task(coro)
+        self.service_tasks.add(t)
+        t.add_done_callback(self.service_tasks.discard)
+        return t
+
+    async def cancel_run_tasks(self) -> None:
+        """Cancel in-flight wakes / triage / PTT of the previous run (and the agent's late background wakes) so
+        nothing stale reaches the next run's screens or its run file."""
+        if self.agent is not None and hasattr(self.agent, "cancel_all"):
+            self.agent.cancel_all()
+        self.agent = None
+        cur = asyncio.current_task()
+        pending = [t for t in list(self.tasks) if t is not cur and not t.done()]
+        for t in pending:
+            t.cancel()
+        if pending:
+            await asyncio.wait(pending, timeout=2)
 
     # -------------------------------------------------- broadcast
     async def send(self, msg: WsMessage) -> None:
@@ -94,12 +116,33 @@ class Runtime:
 
     def broadcast(self, msg: WsMessage):
         if self.recorder is not None and self.world.state.mode == "LIVE":
-            self.recorder.record_ws(self.world.state.t, msg)
+            self.recorder.record_ws(self.now_t(), msg)  # player clock, not the 1 Hz world tick (lags ≤1 s)
         return self.send(msg)
+
+    def retire_recorder(self, delay: float = 0.0) -> None:
+        """Close the LIVE run recorder now (delay 0) or after `delay` s, so late REST acks are still recorded."""
+        rec = self.recorder
+        if rec is None:
+            return
+
+        def _close() -> None:
+            rec.close()
+            if self.recorder is rec:
+                self.recorder = None
+
+        if delay <= 0:
+            _close()
+            return
+
+        async def _later() -> None:
+            await asyncio.sleep(delay)
+            _close()
+
+        self.spawn_service(_later())
 
     def record_rest(self, method: str, path: str, body: Any = None) -> None:
         if self.recorder is not None and self.world.state.mode == "LIVE":
-            self.recorder.record_rest(self.world.state.t, method, path, body)
+            self.recorder.record_rest(self.now_t(), method, path, body)
 
     def now_t(self) -> float:
         if self.player is not None and getattr(self.player, "start_wall", None) is not None:
@@ -124,9 +167,10 @@ app = FastAPI(title="Earshot")
 # ----------------------------------------------------------------------------- pipeline
 async def wake(reason: str, event: Event | None) -> None:
     w = RT.world
+    agent = RT.agent
     try:
-        if RT.agent is not None:
-            await asyncio.wait_for(RT.agent.wake(reason, event), timeout=S.agent_timeout_s + 4)
+        if agent is not None and getattr(agent, "world", w) is w:
+            await asyncio.wait_for(agent.wake(reason, event), timeout=S.agent_timeout_s + 4)
             return
     except Exception as e:
         log.warning("agent wake failed: %s", type(e).__name__)
@@ -154,6 +198,8 @@ def _local_button_triage(unit_id: str, kind: str) -> Triage:
 
 
 def _apply_and_wake(ev: Event, reason: str) -> list:
+    # the world clock otherwise lags the 1 Hz tick; cards are stamped created_t = clock at creation (R1)
+    RT.world.set_t(max(RT.world.state.t, RT.now_t()))
     cards = RT.world.apply_event(ev)
     if ev.triage.tag != "ROUTINE":
         RT.spawn(wake(reason, ev))
@@ -237,10 +283,14 @@ async def ptt_clip(unit_id: str, clip_id: str, tx: Transmission) -> None:
             await asyncio.wait_for(final.wait(), timeout=10)
         except asyncio.TimeoutError:
             pass
-        await rt.close(wait=2)
     except Exception as e:
         w.add_trace(f"ptt_{tx.id}", f"ptt:{unit_id}", "fallback", {"reason": f"ASR error {type(e).__name__}"})
         return
+    finally:  # never leak the realtime socket (connect / stream errors, cancellation on stop)
+        try:
+            await rt.close(wait=2)
+        except Exception:
+            pass
     if RT.world is not w:
         return
     tx.text_final = state.get("text") or tx.text_partial or None
@@ -280,8 +330,7 @@ async def clock_loop() -> None:
                     w.set_t(t)
             if w.state.running and not running:
                 w.state.running = False
-                if RT.recorder:
-                    RT.recorder.close()
+                RT.retire_recorder(RECORDER_GRACE_S)
             await RT.send(WsMessage(type="clock", payload={"t": w.state.t, "running": w.state.running,
                                                            "mode": w.state.mode}))
         except Exception:
@@ -290,7 +339,7 @@ async def clock_loop() -> None:
 
 @app.on_event("startup")
 async def _startup() -> None:
-    RT.spawn(clock_loop())
+    RT.spawn_service(clock_loop())
 
 
 # ----------------------------------------------------------------------------- replay fold (GET /api/state during REPLAY)
@@ -337,7 +386,7 @@ def _state() -> dict[str, Any]:
     return st.model_dump(mode="json")
 
 
-async def _stop_all() -> None:
+async def _stop_all(recorder_grace_s: float = 0.0) -> None:
     if RT.player is not None:
         try:
             await RT.player.stop()
@@ -347,9 +396,11 @@ async def _stop_all() -> None:
     if RT.replayer is not None:
         await RT.replayer.stop()
         RT.replayer = None
-    if RT.recorder is not None:
-        RT.recorder.close()
-        RT.recorder = None
+    if recorder_grace_s <= 0:
+        # restart / reset: the previous run is over for good. (On a plain stop, in-flight wakes may still finish
+        # into the same world during the recorder grace period.)
+        await RT.cancel_run_tasks()
+    RT.retire_recorder(recorder_grace_s)
     RT.world.state.running = False
 
 
@@ -359,6 +410,12 @@ async def scenario_start(body: dict[str, Any] = Body(default={})) -> dict[str, A
     scen = body.get("scenario") or "hanbit"
     lang = body.get("lang") or "ko"
     RT.audio = body.get("audio") or "radio"
+    try:
+        speed = float(body["speed"]) if body.get("speed") is not None else 1.0
+    except (TypeError, ValueError):
+        raise HTTPException(422, "speed must be a number")
+    if speed <= 0:
+        raise HTTPException(422, "speed must be > 0")
     await _stop_all()
     if mode == "REPLAY":
         w = World(scen, lang, "REPLAY", S, None, log_path=None)
@@ -368,14 +425,27 @@ async def scenario_start(body: dict[str, Any] = Body(default={})) -> dict[str, A
             fold_replay(w, msg)
             return RT.send(msg)
 
+        run = body.get("run") or "best"
+        note: str | None = None
+        if run == "best" and not (cache_mod.CACHE_DIR / cache_mod.BEST_NAME).exists():
+            newest = cache_mod.newest_run()
+            if newest is not None:  # no best.jsonl promoted yet: play the newest recorded run, and say so
+                run = newest.name
+                note = f"best.jsonl missing, playing newest run {newest.name}"
         try:
-            RT.replayer = RunReplayer(body.get("run") or "best", on_replay, on_t=w.set_t)
+            RT.replayer = RunReplayer(run, on_replay, on_t=w.set_t)
         except FileNotFoundError as e:
             raise HTTPException(404, str(e))
         w.state.running = True
         await RT.send(WsMessage(type="snapshot", payload=w.state.model_dump(mode="json")))
+        if note:
+            log.warning(note)
+            await RT.send(WsMessage(type="toast", payload={"method": "INFO", "path": note, "body": {"run": run}, "t": 0.0}))
         await RT.replayer.start()
-        return _state()
+        out = _state()
+        if note:
+            out["replay_note"] = note
+        return out
 
     if ScenarioPlayer is None:
         raise HTTPException(503, "scenario player unavailable")
@@ -392,7 +462,8 @@ async def scenario_start(body: dict[str, Any] = Body(default={})) -> dict[str, A
     RT.record_rest("POST", "/api/scenario/start", body)
 
     def on_final(tx: Transmission):
-        RT.spawn(process_final(tx))
+        if RT.world is w:  # a stopped player finalising its tail must not land in the next run
+            RT.spawn(process_final(tx))
 
     def on_ptt_line(ln: dict[str, Any]):
         start_ptt(ln.get("unit") or "kim", ln["id"])
@@ -402,7 +473,7 @@ async def scenario_start(body: dict[str, Any] = Body(default={})) -> dict[str, A
         on_transmission=w.upsert_transmission, on_final=on_final,
         on_audio_cue=lambda cue: w.emit("audio_cue", cue), on_ptt_line=on_ptt_line,
         on_agent_line=lambda ln: None,  # L12 is produced by R2 itself
-        clock=time.perf_counter, id_factory=lambda: w.new_id("tx"),
+        clock=time.perf_counter, id_factory=lambda: w.new_id("tx"), speed=speed,
     )
     w.state.running = True
     await RT.send(WsMessage(type="snapshot", payload=w.state.model_dump(mode="json")))
@@ -413,15 +484,15 @@ async def scenario_start(body: dict[str, Any] = Body(default={})) -> dict[str, A
 @app.post("/api/scenario/stop")
 async def scenario_stop() -> dict[str, Any]:
     RT.record_rest("POST", "/api/scenario/stop")
-    await _stop_all()
+    await _stop_all(recorder_grace_s=RECORDER_GRACE_S)
     return _state()
 
 
 @app.post("/api/scenario/reset")
 async def scenario_reset() -> dict[str, Any]:
     st = RT.world.state
-    await _stop_all()
-    RT.world = World(st.scenario_id, st.lang, st.mode, S, None, log_path=None)
+    await _stop_all()  # also cancels in-flight wakes and drops RT.agent (crew buttons then use the router)
+    RT.world = World(st.scenario_id, st.lang, st.mode, S, RT.broadcast if st.mode == "LIVE" else None, log_path=None)
     await RT.send(WsMessage(type="snapshot", payload=RT.world.state.model_dump(mode="json")))
     return _state()
 
@@ -443,10 +514,32 @@ def _replay_guard() -> bool:
     return RT.world.state.mode == "REPLAY"
 
 
+def _sync_t() -> None:
+    """REST actions carry the current scenario clock (the 1 Hz tick may lag; after the run it stays put)."""
+    RT.world.set_t(max(RT.world.state.t, RT.now_t()))
+
+
+@app.get("/api/runs")
+async def list_runs() -> list[dict[str, Any]]:
+    return cache_mod.list_runs()
+
+
+@app.post("/api/runs/{file}/promote")
+async def promote_run(file: str) -> dict[str, Any]:
+    try:
+        dst = cache_mod.promote(file)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(404, str(e))
+    return {"promoted": file, "best": dst.name, "size": dst.stat().st_size, "t_max": cache_mod.run_t_max(dst)}
+
+
 @app.post("/api/cards/{card_id}/ack")
 async def card_ack(card_id: str) -> dict[str, Any]:
     if _replay_guard():
         raise HTTPException(409, "REPLAY: actions are ignored")
+    _sync_t()
     RT.record_rest("POST", f"/api/cards/{card_id}/ack")
     c = RT.world.ack_card(card_id)
     if c is None:
@@ -458,6 +551,7 @@ async def card_ack(card_id: str) -> dict[str, Any]:
 async def card_resolve(card_id: str, body: dict[str, Any] = Body(default={})) -> dict[str, Any]:
     if _replay_guard():
         raise HTTPException(409, "REPLAY: actions are ignored")
+    _sync_t()
     RT.record_rest("POST", f"/api/cards/{card_id}/resolve", body)
     c = RT.world.resolve_card(card_id, body.get("note"))
     if c is None:
@@ -468,6 +562,7 @@ async def card_resolve(card_id: str, body: dict[str, Any] = Body(default={})) ->
 async def _decide(pid: str, approve: bool) -> dict[str, Any]:
     if _replay_guard():
         raise HTTPException(409, "REPLAY: actions are ignored")
+    _sync_t()
     RT.record_rest("POST", f"/api/proposals/{pid}/{'approve' if approve else 'reject'}")
     p = RT.world.decide_proposal(pid, approve)
     if p is None:

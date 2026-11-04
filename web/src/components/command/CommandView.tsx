@@ -32,7 +32,7 @@ export default function CommandView({
   toasts?: boolean
   className?: string
 }) {
-  const { state, connected, sample, audioCues, escalations } = useEarshot()
+  const { state, connected, sample, audioCues, escalations, epoch } = useEarshot()
   const [playRadio, setPlayRadio] = useState<boolean>(readPlay)
   const seen = useRef<Set<string> | null>(null)
 
@@ -40,12 +40,12 @@ export default function CommandView({
     if (!state) return
     const keys: [string, () => void][] = []
     for (const c of state.cards)
-      keys.push([`card:${c.id}`, () => toast.error(`${tagLabel(c.kind, "ko")} · new card`, { description: c.title })])
+      keys.push([`${epoch}:card:${c.id}`, () => toast.error(`${tagLabel(c.kind, "ko")} · new card`, { description: c.title })])
     for (const p of state.proposals)
-      keys.push([`prop:${p.id}`, () => toast.info(`Proposal · ${p.kind}`, { description: p.text })])
+      keys.push([`${epoch}:prop:${p.id}`, () => toast.info(`Proposal · ${p.kind}`, { description: p.text })])
     for (const e of escalations)
       keys.push([
-        `esc:${e.card_id}:${e.level}`,
+        `${epoch}:esc:${e.card_id}:${e.level}`,
         () => {
           const c = state.cards.find((x) => x.id === e.card_id)
           toast.warning(`Escalation L${e.level}`, { description: c ? c.title : e.card_id })
@@ -60,7 +60,7 @@ export default function CommandView({
       seen.current.add(k)
       if (toasts) fn()
     }
-  }, [state, escalations, toasts])
+  }, [state, escalations, toasts, epoch])
 
   if (!state) {
     return (

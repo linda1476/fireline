@@ -31,7 +31,8 @@ const BUTTONS = [
  * Crew clip-on display. WS mapping (useEarshot):
  *  state.units[unitId]                       → header (callsign + name, zone label_ko, heard N of M)
  *  state.briefs ∪ lastBriefByUnit[unitId]    → latest push = body (spoken via browser TTS); holds → "held N"
- *  state.events[brief.evidence_event_id].triage.tag → tag chip (source=rule → "규칙 R2")
+ *  state.events[brief.evidence_event_id].triage.tag → tag chip ("규칙 Rn" only when the reason names a rule;
+ *                                             IC-approved proposals → "IC 승인")
  *  asks (unit_id == unitId, newest)          → question card
  *  pings (unit_id == unitId, newest)         → 확인 chip → api.crewAck (hidden once unit.unanswered_pings == 0)
  */
@@ -59,13 +60,17 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
     const ev = latestPush.evidence_event_id
       ? state?.events?.find((e) => e.id === latestPush.evidence_event_id)
       : undefined
-    if (latestPush.source === "rule") {
-      tagKey = "RULE"
-      const m = /R[1-5]/.exec(latestPush.reason ?? "")
-      tagText = `규칙 ${m ? m[0] : "R2"}`
-    } else if (ev) {
+    const rule = /\bR[1-5]\b/.exec(latestPush.reason ?? "")
+    const approved = /^IC approved/.test(latestPush.reason ?? "")
+    if (ev) {
       tagKey = ev.triage.tag
       tagText = tagLabel(ev.triage.tag, state?.lang ?? "ko")
+      if (approved) tagText = `${tagText} · IC 승인`
+    } else if (latestPush.source === "rule" && rule) {
+      tagKey = "RULE"
+      tagText = `규칙 ${rule[0]}`
+    } else if (approved) {
+      tagText = "IC 승인"
     } else {
       tagText = latestPush.priority
     }
@@ -88,7 +93,7 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
     }
     if (!id || id === spokenId.current || !latestPush) return
     spokenId.current = id
-    // speak() is fire-and-forget (cancels any utterance in flight); animate for ~4 s
+    // speak() is fire-and-forget (queued behind any utterance in flight); animate for ~4 s
     if (speakBriefs) speak(latestPush.text, lang)
     const t0 = window.setTimeout(() => {
       setPulse(true)
@@ -105,16 +110,18 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
   }, [latestPush, lang, speakBriefs, hasState])
 
   // --- pending ask / ping
+  // tracked by the ask's seq (not its array index: the list is capped at 50 and cleared on a new run)
   const [doneAsks, setDoneAsks] = useState<Set<number>>(() => new Set())
   const askList = asks ?? []
-  let askIdx = -1
+  let lastAsk: (typeof askList)[number] | undefined
   for (let i = askList.length - 1; i >= 0; i--) {
     if (askList[i].unit_id === unitId) {
-      askIdx = i
+      lastAsk = askList[i]
       break
     }
   }
-  const pendingAsk = askIdx >= 0 && !doneAsks.has(askIdx) ? askList[askIdx] : undefined
+  const askSeq = lastAsk?.seq ?? -1
+  const pendingAsk = lastAsk && !doneAsks.has(askSeq) ? lastAsk : undefined
 
   const [ackedPings, setAckedPings] = useState<Set<string>>(() => new Set())
   const myPings = (pings ?? []).filter((p) => p.unit_id === unitId)
@@ -136,7 +143,12 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
       alive = false
     }
   }, [])
-  const nextClip = lines.find((l) => (l.kind === "ptt" || l.channel === "PTT") && l.unit === unitId && !usedClips.has(l.id))
+  // a clip the scenario already played over PTT (L06 at t=56) is a transmission already: never offer it again
+  const playedClips = new Set((state?.transmissions ?? []).map((t) => t.line_id).filter(Boolean) as string[])
+  const nextClip = lines.find(
+    (l) =>
+      (l.kind === "ptt" || l.channel === "PTT") && l.unit === unitId && !usedClips.has(l.id) && !playedClips.has(l.id),
+  )
   const [talking, setTalking] = useState(false)
   const [pttMsg, setPttMsg] = useState<string | null>(null)
 
@@ -149,7 +161,7 @@ export default function CrewView({ unitId, speakBriefs = true }: { unitId: strin
     }
     const id = nextClip.id
     setUsedClips((s) => new Set(s).add(id))
-    if (askIdx >= 0) setDoneAsks((s) => new Set(s).add(askIdx))
+    if (askSeq >= 0) setDoneAsks((s) => new Set(s).add(askSeq))
     setPttMsg(`sent ${id}`)
     try {
       await api.crewPtt(unitId, id)

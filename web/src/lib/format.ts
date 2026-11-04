@@ -75,9 +75,10 @@ export function threshold(th: Record<string, number> | undefined, keys: string[]
   if (th) for (const k of keys) if (typeof th[k] === "number") return th[k]
   return fallback
 }
-export const R1_KEYS = ["R1", "r1", "r1_ack_s"]
-export const R1L2_KEYS = ["R1_level2", "r1_level2", "r1_level2_s"]
-export const R2_KEYS = ["R2", "r2", "r2_silent_s"]
+// server (world.py state.thresholds) spellings first; the rest are older / sample-file spellings
+export const R1_KEYS = ["R1_ack_s", "R1", "r1", "r1_ack_s"]
+export const R1L2_KEYS = ["R1_level2_s", "R1_level2", "r1_level2", "r1_level2_s"]
+export const R2_KEYS = ["R2_silent_s", "R2", "r2", "r2_silent_s"]
 
 export function unitStatusColor(status: string): string {
   switch (status) {

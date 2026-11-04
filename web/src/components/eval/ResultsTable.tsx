@@ -24,8 +24,11 @@ export default function ResultsTable({ rows }: { rows: Row[] }) {
       <TableBody>
         {rows.map((r, i) => {
           const exp = pick(r, "expect.tag", "expected_tag", "expected", "label")
-          const pred = pick(r, "triage.tag", "pred_tag", "predicted", "tag")
-          const ok = exp !== undefined && pred !== undefined ? exp === pred : undefined
+          const pred = pick(r, "pred_tag", "triage.tag", "predicted", "tag")
+          const tagOk = pick(r, "tag_ok")
+          const expArr = Array.isArray(exp) ? exp : exp === undefined ? [] : [exp]
+          const ok =
+            typeof tagOk === "boolean" ? tagOk : expArr.length && pred !== undefined ? expArr.includes(pred) : undefined
           return (
             <TableRow key={`${show(pick(r, "id", "line_id"))}-${i}`}>
               <TableCell className="font-mono text-xs">{show(pick(r, "id", "line_id"))}</TableCell>

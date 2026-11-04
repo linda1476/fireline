@@ -157,3 +157,95 @@ def test_snapshot_for_agent():
     ev(w, "kim", 78, "MAYDAY", "2F-E-STORE", distress=Distress(what="TRAPPED"))
     snap = w.snapshot_for_agent()
     assert snap["open_cards"][0]["kind"] == "MAYDAY" and len(snap["units"]) == 6
+
+
+def test_r1_counts_from_card_visible_time_not_keyup():
+    """L08: key-up t=78, card appears at clock 92 (ASR + triage). R1 level 1 at 102, not 88."""
+    w, msgs = mkworld()
+    tx = Transmission(id=w.new_id("tx"), channel="TAC", unit_id="kim", t_keyup=78, text_final="x")
+    w.upsert_transmission(tx)
+    e = Event(id=w.new_id("evt"), transmission_id=tx.id, t=78, channel="TAC", text="x",
+              triage=Triage(tag="MAYDAY", distress=Distress(what="TRAPPED")), speaker_unit_snapped="kim",
+              zone_id_snapped="2F-E-STORE")
+    w.set_t(92)
+    c = w.apply_event(e)[0]
+    assert c.created_t == 92 and c.event_t == 78 and e.t == 78
+    for t in range(92, 102):
+        w.tick(t)
+        assert c.escalation_level == 0, t
+    w.tick(102)
+    assert c.escalation_level == 1 and c.state == "escalated"
+    w.tick(111)
+    assert c.escalation_level == 1
+    w.tick(112)
+    assert c.escalation_level == 2
+
+
+def test_r2_no_pings_while_mayday_acked():
+    """Acked (not resolved) MAYDAY: the trapped unit is not pinged and gets no duplicate R2 card."""
+    w, msgs = mkworld()
+    ev(w, "kim", 12, status_change="ENTERING", zone="2F-E")
+    c = ev(w, "kim", 78, "MAYDAY", "2F-E-STORE", distress=Distress(what="TRAPPED"))[0]
+    w.set_t(95)
+    w.ack_card(c.id)
+    ev(w, "kim", 92, "HELP_NEEDED", "OUT-EAST")
+    for t in range(93, 200):
+        w.tick(float(t))
+    assert not [m for m in msgs if m.type == "ping" and m.payload["unit_id"] == "kim"]
+    assert not [x for x in w.state.cards if x.kind == "RULE" and x.unit_id == "kim"]
+
+
+def test_exterior_hazard_report_does_not_move_unit():
+    w, _ = mkworld()
+    ev(w, "hanbit_center", 34, "DANGER", "2F-E", hazard_terms=["인화물질"])
+    assert w.state.units["hanbit_center"].zone_id == "OUT-FRONT"
+    ev(w, "kim", 12, status_change="ENTERING", zone="2F-E")
+    ev(w, "kim", 78, "MAYDAY", "2F-E-STORE", distress=Distress(what="TRAPPED"))
+    ev(w, "kim", 92, "HELP_NEEDED", "OUT-EAST")  # "moving toward the east windows" from inside
+    assert w.state.units["kim"].zone_id == "2F-E-STORE"
+
+
+def test_ic_relayed_status_changes_subject_not_ic():
+    w, _ = mkworld()
+    ev(w, "kim", 12, status_change="ENTERING", zone="2F-E")
+    ev(w, "ic", 110, "MAYDAY", "2F-E-STORE", channel="CMD", status_change="TRAPPED",
+       distress=Distress(who="한빛구조대 김하늘", what="TRAPPED"))
+    assert w.state.units["ic"].status != "TRAPPED"
+    assert w.state.units["kim"].status == "TRAPPED"
+
+
+def test_ack_does_not_reopen_resolved_card():
+    w, _ = mkworld()
+    c = ev(w, "kim", 78, "MAYDAY", "2F-E-STORE", distress=Distress(what="TRAPPED"))[0]
+    w.resolve_card(c.id, "rescued")
+    w.ack_card(c.id)
+    assert c.state == "resolved"
+
+
+def test_withdraw_sets_interior_units_out():
+    w, _ = mkworld()
+    ev(w, "kim", 12, status_change="ENTERING", zone="2F-E")
+    ev(w, "park", 22, status_change="ENTERING", zone="1F-W")
+    p = w.add_proposal("WITHDRAW", ["kim", "park"], "전 대원 철수", "R3")
+    w.decide_proposal(p.id, True)
+    for uid in ("kim", "park"):
+        u = w.state.units[uid]
+        assert u.status == "OUT" and not u.interior and u.assignment == "EXITING (withdraw)"
+
+
+def test_merge_regenerates_title_when_zone_arrives():
+    w, _ = mkworld()
+    c = ev(w, "kim", 78, "MAYDAY", None, distress=Distress(what="TRAPPED"))[0]
+    assert c.title.endswith("?")
+    ev(w, "kim", 80, "MAYDAY", "2F-E-STORE", distress=Distress(what="TRAPPED"))
+    assert "2F-E-STORE" in c.title and "?" not in c.title
+
+
+def test_r5_low_air_does_not_escalate_victim_card():
+    w, _ = mkworld()
+    ev(w, "kim", 12, status_change="ENTERING", zone="2F-E")
+    v = ev(w, "kim", 56, "VICTIM_FOUND", "2F-E-OFFICE", victims=Victims(count=1, state="EXTRACTING"))[0]
+    ev(w, "kim", 78, "ROUTINE", "2F-E-STORE", status_change="LOW_AIR")
+    for t in range(79, 200):
+        w.tick(float(t))
+    assert v.escalation_level == 0

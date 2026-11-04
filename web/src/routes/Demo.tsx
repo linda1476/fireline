@@ -9,7 +9,7 @@ export default function Demo() {
   const { state, connected } = useEarshot()
   const mode = state?.mode ?? "LIVE"
   return (
-    <div className="flex min-h-svh flex-col bg-background text-foreground">
+    <div className="flex h-svh flex-col overflow-hidden bg-background text-foreground">
       <div className="flex items-center gap-3 border-b px-3 py-1 text-xs">
         <span
           className={cn(
@@ -27,10 +27,10 @@ export default function Demo() {
         {!connected && <span className="ml-auto text-amber-500">reconnecting…</span>}
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[3fr_2fr]">
-        <div className="min-w-0 overflow-auto">
+        <div className="min-h-0 min-w-0 overflow-hidden">
           <CommandView />
         </div>
-        <div className="flex flex-wrap content-start items-start justify-center gap-3 overflow-auto bg-neutral-800 p-3">
+        <div className="flex min-h-0 flex-wrap content-start items-start justify-center gap-3 overflow-auto bg-neutral-800 p-3">
           <PhoneFrame scale={0.8}>
             <CrewView unitId="kim" />
           </PhoneFrame>

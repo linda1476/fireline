@@ -34,3 +34,20 @@ def test_snap_zone():
     assert snap_zone(["일층 서측"], 1) == "1F-W"
     assert snap_zone([None], None) is None
     _ = Location()
+
+
+def test_snap_zone_floor_is_preference_not_filter():
+    l04 = ["3층 창문", "정면에서 3층 창문으로 확인, 2층 동측 천장으로 연소 확대 우려"]
+    assert snap_zone(l04, 3) == "3F"                    # model said floor 3: the 3F alias wins
+    assert snap_zone(list(reversed(l04)), 3) == "3F"
+    assert snap_zone(["2층 동측 천장", "3층 창문"], None) == "2F-E"   # no floor: not forced to 3F
+    assert snap_zone(["3층 창문"], 2) == "3F"             # off-floor alias still used when the floor has no match
+    assert snap_zone(["2층 서측"], 3) == "3F"             # floor's single top zone beats an off-floor alias
+    assert snap_zone(["동측 천장"], 3) == "OUT-EAST"      # outdoor zones are never filtered by floor (as before)
+
+
+def test_snap_zone_stated_floor_beats_outdoor_alias():
+    from server.verify import snap_zone
+
+    assert snap_zone(["3층 동측 창문 쪽"], floor=3) == "3F"
+    assert snap_zone(["동측 창문 쪽으로 이동 중"], floor=None) == "OUT-EAST"

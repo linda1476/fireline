@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ackCard, resolveCard } from "@/lib/api"
 import { fmtClock, fmtLatency, R1_KEYS, R1L2_KEYS, tagBorder, tagColor, tagLabel, threshold } from "@/lib/format"
-import { applyLocal } from "@/lib/ws"
+import { applyLocal, useEarshot } from "@/lib/ws"
 import type { Card, Proposal, State } from "@/lib/types"
 import { ProposalItem } from "./ProposalItem"
 
@@ -17,12 +17,27 @@ const FIELD_ORDER: Record<string, string[]> = {
   HELP_NEEDED: ["who", "where", "needs"],
 }
 
-// ---- WebAudio alert tone, once per (card, level)
+// ---- WebAudio alert tone, once per (run epoch, card, level)
 const played = new Set<string>()
 let ctx: AudioContext | null = null
+// Autoplay policy: a context created before any user gesture starts suspended. Create / resume it on the first
+// pointerdown anywhere, so the first escalation after any click is audible.
+if (typeof document !== "undefined") {
+  const unlock = () => {
+    try {
+      ctx ??= new AudioContext()
+      if (ctx.state === "suspended") void ctx.resume()
+    } catch {
+      /* no audio */
+    }
+  }
+  document.addEventListener("pointerdown", unlock, { once: true, capture: true })
+  document.addEventListener("keydown", unlock, { once: true, capture: true })
+}
 export function beep(level: number) {
   try {
     ctx ??= new AudioContext()
+    if (ctx.state === "suspended") void ctx.resume()
     const n = level >= 2 ? 3 : 2
     for (let i = 0; i < n; i++) {
       const o = ctx.createOscillator()
@@ -55,14 +70,15 @@ export function CardItem({ card, state, proposals }: { card: Card; state: State;
   const isMaydayLike = card.kind === "MAYDAY" || (card.kind === "RULE" && card.priority === 0)
   const live = card.state === "open" || card.state === "escalated"
   const lvl = card.escalation_level
+  const { epoch } = useEarshot()
 
   useEffect(() => {
     if (lvl < 1 || !live) return
-    const key = `${card.id}:${lvl}`
+    const key = `${epoch}:${card.id}:${lvl}`
     if (played.has(key)) return
     played.add(key)
     beep(lvl)
-  }, [card.id, lvl, live])
+  }, [epoch, card.id, lvl, live])
 
   const r1 = threshold(state.thresholds, R1_KEYS, 10)
   const r1l2 = threshold(state.thresholds, R1L2_KEYS, 20)

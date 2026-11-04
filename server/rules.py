@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from server.config import Settings, get_settings
-from server.models import Event, State
+from server.models import Event, State, assignment_zone
 
 OPEN_STATES = ("open", "escalated")
 
@@ -64,9 +64,10 @@ def _open_cards(state: State):
 
 
 def _has_open_mayday(state: State, unit_id: str) -> bool:
+    """Any non-resolved MAYDAY / R2 card for this unit (acked counts: the mayday is still running)."""
     return any(
-        c.unit_id == unit_id and (c.kind == "MAYDAY" or (c.kind == "RULE" and c.rule_id == "R2"))
-        for c in _open_cards(state)
+        c.unit_id == unit_id and c.state != "resolved" and (c.kind == "MAYDAY" or (c.kind == "RULE" and c.rule_id == "R2"))
+        for c in state.cards
     )
 
 
@@ -90,7 +91,8 @@ def _fmt_t(t: float | None) -> str:
 
 # ----------------------------------------------------------------------------- rules
 def r1(state: State, t: float, th: Settings) -> list[Action]:
-    """MAYDAY / R2 cards unacked: level 1 at ≥ r1_ack_s, level 2 at ≥ r1_level2_s.
+    """MAYDAY / R2 cards unacked: level 1 at ≥ r1_ack_s, level 2 at ≥ r1_level2_s, counted from card.created_t
+    (= world clock when the card became visible, NOT the key-up Event.t, which is ASR + triage seconds earlier).
     Evaluated on open|escalated (state 'escalated' is itself set by level 1)."""
     out: list[Action] = []
     for c in _open_cards(state):
@@ -108,7 +110,7 @@ def r2(state: State, t: float, th: Settings) -> list[Action]:
     Stateless: next ping time = last_heard_t + silent_s + unanswered_pings * gap."""
     out: list[Action] = []
     for u in state.units.values():
-        if not u.interior or u.status == "OUT" or u.last_heard_t is None:
+        if not u.interior or u.status in ("OUT", "TRAPPED") or u.last_heard_t is None:
             continue
         if _has_open_mayday(state, u.id):
             continue
@@ -162,7 +164,8 @@ def r4(state: State, t: float, th: Settings) -> list[Action]:
                 extracting = True
         if extracting or (c.fields.get("state") == "EXTRACTING"):
             continue
-        if c.zone_id and any(u.assignment == c.zone_id for u in state.units.values()):
+        if c.zone_id and any(u.assignment == c.zone_id or assignment_zone(u.assignment) == c.zone_id
+                             for u in state.units.values()):
             continue
         cand = [u.id for u in state.units.values() if u.role in ("CREW", "RIT") and u.id != c.unit_id
                 and u.status not in ("TRAPPED", "LOW_AIR")]
@@ -170,7 +173,7 @@ def r4(state: State, t: float, th: Settings) -> list[Action]:
         where = c.fields.get("where") or c.zone_id or "?"
         out.append(ProposeOrder(
             kind="ASSIGN", units=units, text=f"구조대상자 {where} 구조 배정",
-            rationale=f"R4: victim reported {_fmt_t(c.created_t)}, nobody assigned after {int(th.r4_assign_s)} s",
+            rationale=f"R4: victim reported {_fmt_t(c.event_t if c.event_t is not None else c.created_t)}, nobody assigned after {int(th.r4_assign_s)} s",
             rule_id="R4", card_id=c.id, evidence_event_id=c.event_ids[0] if c.event_ids else None,
         ))
     return out
@@ -183,12 +186,14 @@ def r5(state: State, t: float, th: Settings) -> list[Action]:
     for c in _open_cards(state):
         if c.escalation_level >= 1:
             continue
-        if not (c.kind == "HELP_NEEDED" or (c.unit_id in low_air and c.kind != "RULE")):
+        # LOW_AIR escalates only the unit's own distress / help card, never its DANGER / VICTIM reports
+        if not (c.kind == "HELP_NEEDED" or (c.unit_id in low_air and c.kind == "MAYDAY")):
             continue
         if t - c.created_t < th.r5_exit_s:
             continue
+        since = c.event_t if c.event_t is not None else c.created_t
         exited = any(
-            (e.speaker_unit_snapped == c.unit_id) and e.triage.status_change == "EXITING" and e.t >= c.created_t
+            (e.speaker_unit_snapped == c.unit_id) and e.triage.status_change == "EXITING" and e.t >= since
             for e in state.events
         )
         if not exited:

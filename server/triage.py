@@ -5,6 +5,7 @@ Few-shots below are NOT taken from data/*.yaml (tests/test_triage_schema.py enfo
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any
 
@@ -35,7 +36,7 @@ FIELDS (SOP 109 for MAYDAY: who / what / where / needs / air):
   addressee      who is called ("지휘대장", "Command"), else null.
   location.floor integer only if a floor is stated (2층, 이층, second floor). NEVER invent a floor; else null.
                  옥상/roof → floor null and zone_hint "옥상" (or "roof").
-  location.zone_hint  the sub-floor place words verbatim (e.g. "동쪽 창고 쪽", "계단 우측 사무실", "동측 창문"), else null.
+  location.zone_hint  the sub-floor place words verbatim (e.g. "서쪽 계단실 옆", "기계실 앞", "후면 주차장"), else null.
   location.raw   the whole location phrase verbatim, else null.
   distress       object only for MAYDAY (else null). who = distressed member as said; what = TRAPPED | FALL | INJURY |
                  MISSING | COLLAPSE | GAS | LOW_AIR | LOST | OTHER | UNKNOWN (cannot find the way out = LOST or TRAPPED);
@@ -43,7 +44,7 @@ FIELDS (SOP 109 for MAYDAY: who / what / where / needs / air):
                  paraphrase, never an inference ("구조 요청", "rescue", "low" are wrong unless literally said).
   victims        object only when civilians are mentioned (else null): count as said, where_raw verbatim,
                  state REPORTED | FOUND | EXTRACTING | UNKNOWN. Location and status as reported only; no medical content.
-  hazard_terms   hazard words verbatim from the transcript (e.g. "인화물질", "천장 무너져"), [] if none.
+  hazard_terms   hazard words verbatim from the transcript (e.g. "가스 냄새", "바닥 꺼짐"), [] if none.
   status_change  ENTERING | EXITING | LOW_AIR | TRAPPED | OK ("이상 없음") | NONE.
   strategy_declared OFFENSIVE (공격전략) | DEFENSIVE (방어전략, 전 대원 철수) | NONE.
   needs_ack      true for MAYDAY, DANGER, VICTIM_FOUND, HELP_NEEDED and for orders that need a reply.
@@ -129,11 +130,39 @@ def _spark():
     return _client
 
 
+def _memo_payload(text: str, lang: str, channel: str) -> dict[str, Any]:
+    from server.config import get_settings
+
+    st = get_settings()
+    return {"text": text, "lang": lang, "channel": channel, "model": st.spark_model,
+            "reasoning_effort": st.reasoning_effort,
+            "prompt_sha": hashlib.sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:16]}
+
+
 async def triage(text: str, lang: str = "ko", channel: str = "TAC") -> tuple[Triage, int, dict[str, Any]]:
-    """(Triage, latency_ms, usage). reasoning_effort / max_tokens come from SparkClient defaults (Settings)."""
-    # TODO(cache.py): optional EARSHOT_MEMO input-hash memo goes here once cache.py lands.
-    return await _spark().acomplete_json(SYSTEM_PROMPT, _user(text, lang, channel), Triage, TRIAGE_SCHEMA,
-                                         schema_name="radio_event")
+    """(Triage, latency_ms, usage). reasoning_effort / max_tokens come from SparkClient defaults (Settings).
+
+    EARSHOT_MEMO=1 (dev only): input-hash memo via server.cache.memo keyed on text/lang/channel/model/effort/prompt.
+    A hit returns the cached Triage with the ms of the ORIGINAL call and usage {"memo": true, ...} so the badge
+    is never passed off as a fresh measurement."""
+    from server import cache
+
+    if not cache.memo_enabled():
+        return await _spark().acomplete_json(SYSTEM_PROMPT, _user(text, lang, channel), Triage, TRIAGE_SCHEMA,
+                                             schema_name="radio_event")
+    fresh: dict[str, Any] = {}
+
+    async def compute() -> dict[str, Any]:
+        tr, ms, usage = await _spark().acomplete_json(SYSTEM_PROMPT, _user(text, lang, channel), Triage,
+                                                      TRIAGE_SCHEMA, schema_name="radio_event")
+        fresh["hit"] = False
+        return {"triage": tr.model_dump(mode="json"), "ms": int(ms), "usage": usage or {}}
+
+    rec = await cache.memo("triage", _memo_payload(text, lang, channel), compute)
+    usage = dict(rec.get("usage") or {})
+    if fresh.get("hit", True):
+        usage["memo"] = True
+    return Triage.model_validate(rec["triage"]), int(rec.get("ms", 0)), usage
 
 
 # ----------------------------------------------------------------------------- synthetic crew buttons

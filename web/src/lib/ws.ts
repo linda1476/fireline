@@ -14,6 +14,11 @@ export interface EarshotStore {
   audioCues: AudioCue[]
   escalations: Escalation[]
   lastBriefByUnit: Record<string, Brief | undefined>
+  /** bumps on every fresh-run snapshot (start / reset / REPLAY): card ids restart at card_0001, so client-side
+   *  dedupe (escalation tones, toasts) is keyed by `${epoch}:...` */
+  epoch: number
+  /** last sequence number given to an ephemeral item (pings / asks / audioCues / escalations) */
+  seq: number
 }
 
 const EPHEMERAL_MAX = 50
@@ -27,6 +32,8 @@ let snap: EarshotStore = {
   audioCues: [],
   escalations: [],
   lastBriefByUnit: {},
+  epoch: 0,
+  seq: 0,
 }
 const listeners = new Set<() => void>()
 let started = false
@@ -61,21 +68,40 @@ function briefsByUnit(briefs: Brief[]): Record<string, Brief | undefined> {
   return out
 }
 
+/** A snapshot of a different run than the one on screen: fewer events/cards, the clock went back, or another
+ *  scenario / mode. A reconnect refetch of the same run is not fresh. */
+function isFreshRun(prev: State | null, next: State): boolean {
+  if (!prev) return false
+  return (
+    (next.events?.length ?? 0) < (prev.events?.length ?? 0) ||
+    (next.cards?.length ?? 0) < (prev.cards?.length ?? 0) ||
+    next.t < prev.t - 1 ||
+    next.mode !== prev.mode ||
+    next.scenario_id !== prev.scenario_id ||
+    ((next.events?.length ?? 0) === 0 && (prev.events?.length ?? 0) > 0)
+  )
+}
+
 /** Pure reducer, exported for tests/other screens. */
 export function reduce(s: EarshotStore, msg: WsMessage): EarshotStore {
   const st = s.state
   const now = st?.t ?? 0
+  const seq = s.seq + 1
   switch (msg.type) {
-    case "snapshot":
-      return { ...s, state: msg.payload, lastBriefByUnit: briefsByUnit(msg.payload.briefs ?? []) }
+    case "snapshot": {
+      const base = { ...s, state: msg.payload, lastBriefByUnit: briefsByUnit(msg.payload.briefs ?? []) }
+      if (!isFreshRun(st, msg.payload)) return base
+      // new run: drop the previous run's stale asks / pings / escalations / cues
+      return { ...base, epoch: s.epoch + 1, asks: [], pings: [], escalations: [], audioCues: [] }
+    }
     case "audio_cue":
-      return { ...s, audioCues: pushCapped(s.audioCues, { ...msg.payload, t: msg.payload.t ?? now }) }
+      return { ...s, seq, audioCues: pushCapped(s.audioCues, { ...msg.payload, t: msg.payload.t ?? now, seq }) }
     case "ping":
-      return { ...s, pings: pushCapped(s.pings, { ...msg.payload, t: msg.payload.t ?? now }) }
+      return { ...s, seq, pings: pushCapped(s.pings, { ...msg.payload, t: msg.payload.t ?? now, seq }) }
     case "ask":
-      return { ...s, asks: pushCapped(s.asks, { ...msg.payload, t: msg.payload.t ?? now }) }
+      return { ...s, seq, asks: pushCapped(s.asks, { ...msg.payload, t: msg.payload.t ?? now, seq }) }
     case "escalation":
-      return { ...s, escalations: pushCapped(s.escalations, { ...msg.payload, t: msg.payload.t ?? now }) }
+      return { ...s, seq, escalations: pushCapped(s.escalations, { ...msg.payload, t: msg.payload.t ?? now, seq }) }
   }
   if (!st) return s
   switch (msg.type) {

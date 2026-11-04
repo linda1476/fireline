@@ -102,34 +102,38 @@ def snap_unit(raw: str | None, lang: str = "ko", roster: dict[str, Unit] | None 
 # ----------------------------------------------------------------------------- zone snap
 def snap_zone(raw_hints: list[str | None] | str | None, floor: int | None = None, lang: str = "ko",
               zones: dict[str, Zone] | None = None) -> str | None:
-    """Longest normalised alias contained in any hint wins (deepest match); floor filters when given.
-    All hints ([zone_hint, raw, where_raw]) are searched jointly; the longest alias across them wins."""
+    """Longest normalised alias contained in any hint wins (deepest match on ties). All hints
+    ([zone_hint, raw, where_raw]) are searched jointly.
+
+    `floor` (triage.location.floor) is a PREFERENCE, not a filter: an alias of a zone on that floor beats an outdoor
+    alias, which beats an alias on another floor ("정면에서 3층 창문 … 2층 동측 천장" with floor 3 → 3F); if none matches,
+    the floor's single top-level zone; only then an alias on another floor. With floor None nothing is forced."""
     if isinstance(raw_hints, str) or raw_hints is None:
         raw_hints = [raw_hints]
     zs = list((zones or load_zones()).values())
-    best: tuple[int, int, str] | None = None
+    best: tuple[int, int, int, str] | None = None
     for hint in raw_hints:
         key = norm_key(hint)
         if not key:
             continue
         for z in zs:
-            if floor is not None and z.floor is not None and z.floor != floor:
-                continue
+            # stated floor: zones ON that floor first (2), then outdoor / floor-less zones (1), other floors last (0)
+            on_floor = 1 if floor is None else 2 if z.floor == floor else 1 if z.floor is None else 0
             for a in [z.label_ko, z.label_en, *(z.aliases or [])]:
                 ak = norm_key(a)
                 if ak and ak in key:
                     depth = 1 if z.parent else 0
-                    cand = (len(ak), depth, z.id)
-                    if best is None or cand[:2] > best[:2]:
+                    cand = (on_floor, len(ak), depth, z.id)
+                    if best is None or cand[:3] > best[:3]:
                         best = cand
-    if best:
-        return best[2]
+    if best and best[0] >= 1:
+        return best[3]
     # floor-only fallback: the floor's top-level zone if exactly one
     if floor is not None:
         tops = [z.id for z in zs if z.floor == floor and not z.parent]
         if len(tops) == 1:
             return tops[0]
-    return None
+    return best[3] if best else None
 
 
 def snap_event(triage: Triage, text: str, lang: str = "ko") -> tuple[bool, Triage, str | None, str | None]:

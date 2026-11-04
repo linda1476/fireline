@@ -2,14 +2,16 @@
 
 route(event, world) -> list[Brief]. Push triage.crew_brief (or a template) to crew units whose zone/assignment is
 the event zone, its parent/children or vertical neighbour (same rule as checker invariant 1); every crew unit for
-MAYDAY (P0); hold for everyone else with reason "not your sector (zone X)".
+MAYDAY (P0) EXCEPT the member in distress (checker.distressed_unit, invariant 7: never brief a unit about its own
+mayday; it is held and gets a hold-position brief only when the IC approves RIT_DEPLOY); hold for everyone else with
+reason "not your sector (zone X)".
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from server.checker import related_zones, unit_in_zones
+from server.checker import PUSH_GAP_S, check_text, distressed_unit, related_zones, unit_in_zones
 from server.models import Brief, Event
 
 CREW_ROLES = ("CREW", "RIT", "EXTERIOR")
@@ -38,28 +40,56 @@ def template_text(event: Event, lang: str) -> str:
     return tpl.format(where=where, terms=terms).replace("  ", " ").strip()[:140]
 
 
+def _last_non_p0_push(st: Any) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for b in st.briefs:
+        if b.decision == "push" and b.priority != "P0":
+            out[b.unit_id] = max(out.get(b.unit_id, -1e9), b.created_t)
+    return out
+
+
 def route(event: Event, world: Any, wake_id: str = "fallback", reason: str = "agent unavailable",
-          skip_units: set[str] | None = None) -> list[Brief]:
+          skip_units: set[str] | None = None, wake_reason: str | None = None, gap_fill: bool = False) -> list[Brief]:
+    """Same invariants as the checker: text <=2 sentences / 140 chars (else the template), <=1 non-P0 push per unit
+    per PUSH_GAP_S (else hold "rate limited"), never the distressed unit about its own mayday."""
     st = world.state
     tag = event.triage.tag
     if tag == "ROUTINE":
         return []
     lang = st.lang
-    text = (event.triage.crew_brief or "").strip() or template_text(event, lang)
+    speaker = event.speaker_unit_snapped
+    wake_reason = wake_reason or f"event:{event.id} {tag}"
+    targets = [(uid, u) for uid, u in st.units.items()
+               if u.role in CREW_ROLES and uid != speaker and uid not in (skip_units or ())
+               # gap fill after a healthy agent wake: exterior units the agent rightly ignored are not a gap
+               and (not gap_fill or tag == "MAYDAY" or u.interior)]
+    if not gap_fill:  # a real fallback is always traced, even when the agent had already decided every unit
+        world.add_trace(wake_id=wake_id, wake_reason=wake_reason, kind="fallback", payload={"reason": reason})
+    if not targets:
+        return []
+    if gap_fill:  # not a fallback: the agent ran fine, the router only covers units it left undecided
+        world.add_trace(wake_id=wake_id, wake_reason=wake_reason, kind="wake",
+                        payload={"gap_fill": reason, "units": [uid for uid, _ in targets]})
+    text = (event.triage.crew_brief or "").strip()
+    if not text or check_text(text) is not None:
+        text = template_text(event, lang)
     if len(text) > 140:
         text = text[:139] + "…"
-    wake_reason = f"event:{event.id} {tag}"
-    world.add_trace(wake_id=wake_id, wake_reason=wake_reason, kind="fallback", payload={"reason": reason})
     rel = related_zones(event.zone_id_snapped, st)
     briefs: list[Brief] = []
-    speaker = event.speaker_unit_snapped
-    for uid, u in st.units.items():
-        if u.role not in CREW_ROLES or uid == speaker or uid in (skip_units or ()):
-            continue
-        if tag == "MAYDAY":
+    subject = distressed_unit(event, st) if tag == "MAYDAY" else None
+    last_push = _last_non_p0_push(st)
+    for uid, u in targets:
+        hold_reason = None
+        if uid == subject:
+            push, prio = False, "P2"
+            hold_reason = "member in distress: own mayday not re-broadcast (invariant 7)"
+        elif tag == "MAYDAY":
             push, prio = True, "P0"
         else:
             push, prio = unit_in_zones(uid, rel, st), "P1"
+            if push and uid in last_push and st.t - last_push[uid] < PUSH_GAP_S:
+                push, hold_reason = False, f"rate limited ({PUSH_GAP_S:.0f} s)"
         if push:
             b = world.add_brief(unit_id=uid, decision="push", text=text, priority=prio,
                                 reason=f"zone match {event.zone_id_snapped}" if tag != "MAYDAY" else "MAYDAY: all units",
@@ -67,7 +97,8 @@ def route(event: Event, world: Any, wake_id: str = "fallback", reason: str = "ag
         else:
             zone = u.zone_id or u.assignment or "?"
             b = world.add_brief(unit_id=uid, decision="hold", text=text, priority="P2",
-                                reason=f"not your sector (zone {zone})", evidence_event_id=event.id, source="router")
+                                reason=hold_reason or f"not your sector (zone {zone})", evidence_event_id=event.id,
+                                source="router")
         world.add_trace(wake_id=wake_id, wake_reason=wake_reason, kind="delivery",
                         payload={"brief_id": getattr(b, "id", None), "unit_id": uid, "decision": "push" if push else "hold",
                                  "source": "router"})

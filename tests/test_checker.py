@@ -28,7 +28,10 @@ def test_zone_containment():
     assert check("send_brief", brief("kim"), s, 35, {}) == (True, None)
     ok, err = check("send_brief", brief("park"), s, 35, {})
     assert not ok and "invariant 1" in err
-    assert check("send_brief", brief("park", "P0"), s, 35, {})[0]  # P0 exempt
+    # P0 is not a sector bypass on a DANGER event (invariant 1: P0 only for MAYDAY-class evidence)
+    ok, err = check("send_brief", brief("park", "P0"), s, 35, {})
+    assert not ok and "P0 is only for crew safety" in err
+    assert not check("send_brief", brief("ic", "P0"), s, 35, {})[0]
 
 
 def test_assignment_counts():
@@ -42,7 +45,33 @@ def test_rate_limit():
     ok, err = check("send_brief", brief("kim"), s, 35, {"kim": 30})
     assert not ok and "invariant 2" in err
     assert check("send_brief", brief("kim"), s, 35, {"kim": 10})[0]
-    assert check("send_brief", brief("kim", "P0"), s, 35, {"kim": 30})[0]
+    # P0 on a MAYDAY event is exempt from sector + rate limit
+    from server.agent import demo_state_mayday
+    m = demo_state_mayday()
+    assert check("send_brief", brief("park", "P0", "2층 동쪽 창고 대원 고립 상황. 퇴로 확인.", "evt_0009"), m, 95,
+                 {"park": 90})[0]
+
+
+def test_assignment_free_text_leading_zone_counts():
+    s = st()
+    s.units["park"].zone_id = "OUT-FRONT"
+    s.units["park"].assignment = "2F-E 우선탐색"      # roster-style free text
+    assert check("send_brief", brief("park"), s, 35, {})[0]
+
+
+def test_related_zones_includes_siblings():
+    s = st()
+    assert "2F-E-OFFICE" in related_zones("2F-E-STORE", s)
+
+
+def test_request_missing_field_only_to_distressed_on_mayday():
+    from server.agent import demo_state_mayday
+    m = demo_state_mayday()
+    ok, err = check("request_missing_field", {"unit_id": "park", "field": "air", "evidence_event_id": "evt_0009"}, m, 95)
+    assert not ok and "member in distress" in err
+    assert check("request_missing_field", {"unit_id": "kim", "field": "needs", "evidence_event_id": "evt_0009"}, m, 95)[0]
+    ok, err = check("request_missing_field", {"unit_id": "kim", "field": "air", "evidence_event_id": "evt_0004"}, m, 95)
+    assert not ok and "MAYDAY" in err
 
 
 def test_text_limits():
@@ -92,7 +121,7 @@ def test_agent_execute_reject_counts():
     assert r["ok"] is False and s.counters.checker_rejections == 1
     r = a.execute("send_brief", brief("kim"))
     assert r["ok"] and s.briefs[-1].unit_id == "kim" and s.units["kim"].heard_count == 1
-    r = a.execute("send_brief", brief("kim"))  # rate-limited now
-    assert not r["ok"]
+    r = a.execute("send_brief", brief("kim"))  # same unit + same evidence event: duplicate, no second push
+    assert r["ok"] and r["deduped"] and s.units["kim"].heard_count == 1 and s.counters.checker_rejections == 1
     kinds = [t.kind for t in s.trace]
     assert kinds[:3] == ["tool_call", "checker", "tool_call"] and "delivery" in kinds

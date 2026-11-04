@@ -73,3 +73,19 @@ async def test_triage_network():
         pytest.skip("no MODEL_API_KEY")
     t, ms, _ = await triage("지휘대장 여기 누리센터 박준 1층 서측 검색 중 이상 없음", "ko", "TAC")
     assert t.tag == "ROUTINE" and ms > 0
+
+
+# SOP / radio vocabulary the prompt must name (field definitions, codewords); everything else quoted in SYSTEM must
+# not be copied from a scenario / eval line
+_SOP_VOCAB = {"이상없음", "지휘대장", "command", "rescue", "공격전략", "방어전략", "긴급탈출", "맨다운", "mayday",
+              "상황실", "전대원철수"}
+
+
+def test_system_prompt_examples_not_in_data():
+    from server.triage import SYSTEM
+
+    texts = _data_texts()
+    quoted = re.findall(r'"([^"]+)"', SYSTEM) + re.findall(r"\(([^()]+)\)", SYSTEM)
+    leaks = [q for q in quoted
+             if len(_norm(q)) >= 4 and _norm(q) not in _SOP_VOCAB and any(_norm(q) in t for t in texts)]
+    assert not leaks, leaks
